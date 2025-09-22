@@ -94,11 +94,34 @@
         .header {
             text-align: center;
             margin-bottom: 40px;
-            padding: 30px;
+            padding: 0;
             background: var(--card-bg);
             backdrop-filter: blur(20px);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            height: 300px;
+        }
+
+        .header-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('Halloween_banner.jpg');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            display: none;
         }
 
         .header h1 {
@@ -317,13 +340,44 @@
         }
 
         /* Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                height: 150px;
+                margin-bottom: 20px;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+                gap: 3px;
+                padding: 6px;
+            }
+            
+            .tab-btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
             }
             
-            .header h1 {
-                font-size: 2.2rem;
+            .header {
+                height: 180px;
             }
             
             .nav-tabs {
@@ -343,6 +397,12 @@
             .modal-content {
                 padding: 25px;
                 margin: 20px;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .header {
+                height: 350px;
             }
         }
 
@@ -534,17 +594,93 @@
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
         }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white !important;
+            }
+            
+            .container {
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .print-header {
+                text-align: center;
+                margin-bottom: 20px;
+                padding: 20px;
+                border-bottom: 2px solid #16a34a;
+            }
+            
+            .print-header h1 {
+                color: #16a34a !important;
+                font-size: 2rem !important;
+                margin-bottom: 10px;
+            }
+            
+            .print-date-section {
+                page-break-inside: avoid;
+                margin-bottom: 25px;
+                border: 1px solid #e5e7eb;
+                padding: 15px;
+                border-radius: 8px;
+            }
+            
+            .print-date-header {
+                background: #16a34a;
+                color: white;
+                padding: 10px;
+                margin: -15px -15px 15px -15px;
+                font-size: 1.2rem;
+                font-weight: bold;
+            }
+            
+            .print-timeslot {
+                border: 1px solid #d1d5db;
+                border-radius: 5px;
+                padding: 10px;
+                margin-bottom: 10px;
+                background: #f9fafb;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .print-function-name {
+                font-weight: bold;
+                color: #16a34a;
+            }
+            
+            .print-time {
+                font-weight: 600;
+            }
+            
+            .print-capacity {
+                color: #6b7280;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <div class="logo-container" style="margin-bottom: 20px;">
-                <img src="depuzzel_logo_groen.png" alt="De Puzzel Logo" class="header-logo" style="height: 80px; width: auto;">
+            <div class="header-banner"></div>
+            <div class="header-content">
+                <div class="logo-container" style="margin-bottom: 20px;">
+                    <img src="depuzzel_logo_groen.png" alt="De Puzzel Logo" class="header-logo" style="height: 80px; width: auto;">
+                </div>
+                <h1>🎃 Halloween 2025</h1>
+                <p>Vrijwilligersplanning De Puzzel</p>
             </div>
-            <h1>🎃 Halloween 2025</h1>
-            <p>Vrijwilligersplanning De Puzzel</p>
         </div>
 
         <!-- Navigation Tabs -->
@@ -584,8 +720,9 @@
 
             <!-- Schedule Section -->
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                     <h3>🗓️ Halloween Planning Rooster</h3>
+                    <button class="btn btn-primary" onclick="exportScheduleToPrint()">🖨️ Print Planning</button>
                 </div>
 
                 <!-- Function Filter -->
@@ -609,53 +746,7 @@
                 
                 <div id="evaluationForm" style="display: none;">
                     <form id="evalForm">
-                        <div class="form-group">
-                            <label class="form-label">Je naam (optioneel):</label>
-                            <input type="text" id="evalName" class="form-input" placeholder="Naam">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Voor welke functie was je vrijwilliger?</label>
-                            <select id="evalFunction" class="form-input" required></select>
-                        </div>
-
-                        <div class="rating-group">
-                            <label class="form-label">Hoe beoordeel je de organisatie? (1-5 sterren)</label>
-                            <div class="rating-stars" id="organizationRating">
-                                <span class="star" data-rating="1">⭐</span>
-                                <span class="star" data-rating="2">⭐</span>
-                                <span class="star" data-rating="3">⭐</span>
-                                <span class="star" data-rating="4">⭐</span>
-                                <span class="star" data-rating="5">⭐</span>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Wat ging er goed?</label>
-                            <textarea id="evalPositive" class="textarea" placeholder="Positieve punten..."></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Wat kan er beter?</label>
-                            <textarea id="evalImprovements" class="textarea" placeholder="Verbeterpunten..."></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Wil je volgend jaar weer vrijwilliger zijn?</label>
-                            <select id="evalVolunteerAgain" class="form-input" required>
-                                <option value="">Maak een keuze...</option>
-                                <option value="yes">Ja, zeker!</option>
-                                <option value="maybe">Misschien</option>
-                                <option value="no">Nee</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Overige opmerkingen:</label>
-                            <textarea id="evalComments" class="textarea" placeholder="Opmerkingen..."></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">📝 Evaluatie Versturen</button>
+                        <!-- Dynamic form fields will be generated here -->
                     </form>
                 </div>
 
@@ -689,6 +780,7 @@
                     <button class="btn btn-secondary" onclick="showAdminSection('functions')">🎯 Functies</button>
                     <button class="btn btn-secondary" onclick="showAdminSection('timeslots')">⏰ Tijdsloten</button>
                     <button class="btn btn-secondary" onclick="showAdminSection('evaluations')">⭐ Evaluaties</button>
+                    <button class="btn btn-secondary" onclick="showAdminSection('evaluation-form')">📝 Evaluatie Formulier</button>
                     <button class="btn btn-secondary" onclick="showAdminSection('settings')">⚙️ Instellingen</button>
                 </div>
 
@@ -807,12 +899,92 @@
         </div>
     </div>
 
+    <!-- Timeslot Bookings Modal -->
+    <div id="timeslotBookingsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 id="bookingsModalTitle">👥 Tijdslot Boekingen</h3>
+                <div id="bookingsSlotInfo"></div>
+            </div>
+            <div id="bookingsList"></div>
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button class="btn btn-secondary" onclick="closeModal('timeslotBookingsModal')" style="flex: 1;">❌ Sluiten</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluation Question Modal -->
+    <div id="evaluationQuestionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="evaluationQuestionModalTitle">➕ Nieuwe Evaluatievraag Toevoegen</h3>
+            </div>
+            <form id="evaluationQuestionForm">
+                <div class="form-group">
+                    <label class="form-label">Vraagtype *</label>
+                    <select id="questionType" class="form-input" required onchange="updateQuestionForm()">
+                        <option value="">Kies een type...</option>
+                        <option value="text">Tekstveld (kort)</option>
+                        <option value="textarea">Tekstgebied (lang)</option>
+                        <option value="select">Keuzelijst</option>
+                        <option value="rating">Sterren beoordeling</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Label/Vraag *</label>
+                    <input type="text" id="questionLabel" class="form-input" required placeholder="bijv. Wat vond je van de organisatie?">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Veldnaam *</label>
+                    <input type="text" id="questionFieldName" class="form-input" required placeholder="bijv. organizationFeedback">
+                    <small style="color: #6b7280; font-size: 0.8rem;">Technische naam voor het veld (geen spaties, alleen letters en underscores)</small>
+                </div>
+                <div class="form-group" id="questionPlaceholderGroup">
+                    <label class="form-label">Placeholder tekst</label>
+                    <input type="text" id="questionPlaceholder" class="form-input" placeholder="Hulptekst in het veld...">
+                </div>
+                <div class="form-group" id="questionOptionsGroup" style="display: none;">
+                    <label class="form-label">Opties (JSON formaat)</label>
+                    <textarea id="questionOptions" class="textarea" placeholder='[{"value":"yes","label":"Ja"},{"value":"no","label":"Nee"}]'></textarea>
+                    <small style="color: #6b7280; font-size: 0.8rem;">Voor functies gebruik: "functions" | Voor custom opties gebruik JSON formaat</small>
+                </div>
+                <div class="form-group" id="questionRatingGroup" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label class="form-label">Min waarde</label>
+                            <input type="number" id="questionMin" class="form-input" value="1" min="1" max="10">
+                        </div>
+                        <div>
+                            <label class="form-label">Max waarde</label>
+                            <input type="number" id="questionMax" class="form-input" value="5" min="1" max="10">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Volgorde</label>
+                    <input type="number" id="questionOrder" class="form-input" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="questionRequired" style="margin: 0;">
+                        <span>Verplicht veld</span>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">✓ Opslaan</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('evaluationQuestionModal')" style="flex: 1;">❌ Annuleren</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Global Variables
         let functions = [];
         let timeSlots = [];
         let bookings = [];
         let evaluations = [];
+        let evaluationQuestions = []; // New: store evaluation form structure
         let currentView = 'calendar';
         let selectedFunction = 'all';
         let currentBookingSlot = null;
@@ -820,13 +992,262 @@
 
         // Email Configuration
         const EMAILJS_CONFIG = {
-            serviceId: 'service_halloween2025',
-            templateId: 'template_volunteer',
+            serviceId: 'service_4mw5ykn',
+            templateId: 'template_fzaajfb',
             publicKey: 'VehBeO9qQGs5Tbvvn'
         };
 
         // Initialize EmailJS
         emailjs.init(EMAILJS_CONFIG.publicKey);
+
+        // Timeslot Bookings Management
+        function showTimeslotBookings(timeslotId) {
+            const slot = timeSlots.find(s => s.id === timeslotId);
+            if (!slot) return;
+            
+            const func = functions.find(f => f.id === slot.functionId);
+            const color = getFunctionColorById(slot.functionId);
+            const slotBookings = bookings.filter(booking => booking.slotId === timeslotId);
+            
+            // Update modal header with slot info
+            const slotInfo = document.getElementById('bookingsSlotInfo');
+            slotInfo.innerHTML = `
+                <div style="background: ${color.gradient}; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 8px;">${func.name}</h4>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                        <span>📅 ${formatDate(slot.date)}</span>
+                        <span>🕐 ${slot.startTime} - ${slot.endTime}</span>
+                        <span>👥 ${slotBookings.length}/${slot.capacity} geboekt</span>
+                    </div>
+                </div>
+            `;
+            
+            // Show bookings list
+            const bookingsList = document.getElementById('bookingsList');
+            
+            if (slotBookings.length === 0) {
+                bookingsList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">📝</div>
+                        <div style="font-size: 1.2rem; margin-bottom: 10px;">Geen boekingen gevonden</div>
+                        <div style="font-size: 0.9rem;">Dit tijdslot heeft nog geen vrijwilligers</div>
+                    </div>
+                `;
+            } else {
+                let html = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 15px; color: var(--text-color);">Geboekte Vrijwilligers (${slotBookings.length})</h4>
+                        <div style="display: grid; gap: 10px;">
+                `;
+                
+                slotBookings.forEach((booking, index) => {
+                    const bookingDate = new Date(booking.bookingDate).toLocaleDateString('nl-NL');
+                    html += `
+                        <div style="background: #f8fafc; border: 2px solid #e5e7eb; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--text-color); margin-bottom: 5px;">👤 ${booking.name}</div>
+                                <div style="font-size: 0.9rem; color: #6b7280; margin-bottom: 3px;">
+                                    📧 <a href="mailto:${booking.email}" style="color: var(--primary-color);">${booking.email}</a>
+                                </div>
+                                ${booking.phone ? `<div style="font-size: 0.9rem; color: #6b7280; margin-bottom: 3px;">📞 <a href="tel:${booking.phone}" style="color: var(--primary-color);">${booking.phone}</a></div>` : ''}
+                                <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 5px;">
+                                    Geboekt op: ${bookingDate}
+                                </div>
+                            </div>
+                            <button class="btn delete-booking-btn" style="padding: 8px 12px; background: #dc2626; color: white; font-size: 0.8rem; margin-left: 15px;" 
+                                    data-booking-id="${booking.id || index}" data-timeslot-id="${timeslotId}" data-booking-email="${booking.email}">
+                                🗑️ Verwijder
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                html += '</div></div>';
+                bookingsList.innerHTML = html;
+                
+                // Add event listeners for delete buttons
+                document.querySelectorAll('.delete-booking-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const bookingId = this.getAttribute('data-booking-id');
+                        const timeslotId = this.getAttribute('data-timeslot-id');
+                        const bookingEmail = this.getAttribute('data-booking-email');
+                        deleteBooking(bookingId, timeslotId, bookingEmail);
+                    });
+                });
+            }
+            
+            openModal('timeslotBookingsModal');
+        }
+        
+        async function deleteBooking(bookingId, timeslotId, bookingEmail = null) {
+            // Find booking by ID first, then by email as fallback
+            let booking = bookings.find(b => b.id === bookingId);
+            if (!booking && bookingEmail) {
+                booking = bookings.find(b => b.email === bookingEmail && b.slotId === timeslotId);
+            }
+            
+            const slot = timeSlots.find(s => s.id === timeslotId);
+            
+            if (!booking || !slot) {
+                showError('Boeking of tijdslot niet gevonden');
+                return;
+            }
+            
+            if (!confirm(`Weet je zeker dat je de boeking van "${booking.name}" wilt verwijderen?\n\nDit kan niet ongedaan gemaakt worden.`)) {
+                return;
+            }
+            
+            try {
+                // Find the Firebase document by searching through all bookings documents
+                const bookingsSnapshot = await window.getDocs(window.collection(window.db, 'bookings'));
+                let bookingDocId = null;
+                
+                bookingsSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (data.email === booking.email && data.slotId === timeslotId) {
+                        bookingDocId = doc.id;
+                    }
+                });
+                
+                // Delete booking from Firebase
+                if (bookingDocId) {
+                    await window.deleteDoc(window.doc(window.db, 'bookings', bookingDocId));
+                }
+                
+                // Find the timeslot Firebase document
+                const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
+                let slotDocId = null;
+                
+                timeSlotsSnapshot.docs.forEach(doc => {
+                    if (doc.data().id === timeslotId || doc.id === timeslotId) {
+                        slotDocId = doc.id;
+                    }
+                });
+                
+                // Update timeslot in Firebase
+                if (slotDocId) {
+                    const updatedVolunteers = (slot.volunteers || []).filter(v => v.email !== booking.email);
+                    const slotRef = window.doc(window.db, 'timeSlots', slotDocId);
+                    await window.updateDoc(slotRef, {
+                        booked: Math.max(0, slot.booked - 1),
+                        volunteers: updatedVolunteers
+                    });
+                }
+                
+                // Update local data
+                const bookingIndex = bookings.findIndex(b => b.email === booking.email && b.slotId === timeslotId);
+                if (bookingIndex !== -1) {
+                    bookings.splice(bookingIndex, 1);
+                }
+                
+                slot.booked = Math.max(0, slot.booked - 1);
+                if (slot.volunteers) {
+                    slot.volunteers = slot.volunteers.filter(v => v.email !== booking.email);
+                }
+                
+                showSuccess(`✅ Boeking van "${booking.name}" succesvol verwijderd`);
+                
+                // Refresh views
+                renderSchedule();
+                
+                // If we're in admin mode, refresh admin view
+                if (isAdminLoggedIn) {
+                    // Refresh the bookings modal
+                    showTimeslotBookings(timeslotId);
+                    
+                    // Also refresh admin overview if it's currently shown
+                    const activeAdminBtn = document.querySelector('.admin-nav .btn-primary');
+                    if (activeAdminBtn && activeAdminBtn.textContent.includes('Overzicht')) {
+                        showAdminSection('overview');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error deleting booking:', error);
+                showError('Fout bij het verwijderen van de boeking. Probeer opnieuw.');
+            }
+        }
+
+        // Admin Delete Booking Function (from bookings overview)
+        async function deleteBookingFromAdmin(bookingId, timeslotId, bookingEmail, bookingName) {
+            // Find booking by ID first, then by email as fallback
+            let booking = bookings.find(b => b.id === bookingId);
+            if (!booking && bookingEmail) {
+                booking = bookings.find(b => b.email === bookingEmail && b.slotId === timeslotId);
+            }
+            
+            const slot = timeSlots.find(s => s.id === timeslotId);
+            
+            if (!booking || !slot) {
+                showError('Boeking of tijdslot niet gevonden');
+                return;
+            }
+            
+            if (!confirm(`Weet je zeker dat je de boeking van "${bookingName || booking.name}" wilt verwijderen?\n\nDit kan niet ongedaan gemaakt worden.`)) {
+                return;
+            }
+            
+            try {
+                // Find the Firebase document by searching through all bookings documents
+                const bookingsSnapshot = await window.getDocs(window.collection(window.db, 'bookings'));
+                let bookingDocId = null;
+                
+                bookingsSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (data.email === booking.email && data.slotId === timeslotId) {
+                        bookingDocId = doc.id;
+                    }
+                });
+                
+                // Delete booking from Firebase
+                if (bookingDocId) {
+                    await window.deleteDoc(window.doc(window.db, 'bookings', bookingDocId));
+                }
+                
+                // Find the timeslot Firebase document
+                const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
+                let slotDocId = null;
+                
+                timeSlotsSnapshot.docs.forEach(doc => {
+                    if (doc.data().id === timeslotId || doc.id === timeslotId) {
+                        slotDocId = doc.id;
+                    }
+                });
+                
+                // Update timeslot in Firebase
+                if (slotDocId) {
+                    const updatedVolunteers = (slot.volunteers || []).filter(v => v.email !== booking.email);
+                    const slotRef = window.doc(window.db, 'timeSlots', slotDocId);
+                    await window.updateDoc(slotRef, {
+                        booked: Math.max(0, slot.booked - 1),
+                        volunteers: updatedVolunteers
+                    });
+                }
+                
+                // Update local data
+                const bookingIndex = bookings.findIndex(b => b.email === booking.email && b.slotId === timeslotId);
+                if (bookingIndex !== -1) {
+                    bookings.splice(bookingIndex, 1);
+                }
+                
+                slot.booked = Math.max(0, slot.booked - 1);
+                if (slot.volunteers) {
+                    slot.volunteers = slot.volunteers.filter(v => v.email !== booking.email);
+                }
+                
+                showSuccess(`✅ Boeking van "${bookingName || booking.name}" succesvol verwijderd`);
+                
+                // Refresh views
+                renderSchedule();
+                showAdminSection('bookings'); // Refresh the bookings list
+                
+            } catch (error) {
+                console.error('❌ Error deleting booking:', error);
+                showError('Fout bij het verwijderen van de boeking. Probeer opnieuw.');
+            }
+        }
 
         // Enhanced color scheme for functions - more distinct and vibrant with higher opacity
         const functionColors = [
@@ -961,24 +1382,26 @@
                 // Initialize UI
                 initializeUI();
                 
-                // Generate sample data if empty
-                if (functions.length === 0 || timeSlots.length === 0) {
-                    await generateHalloweenData();
-                }
-                
                 // Setup event listeners
                 setupEventListeners();
                 
                 showLoading(false);
                 console.log('✅ App initialized successfully!');
                 
+                // Show message if no data is available
+                if (functions.length === 0) {
+                    showError('Geen functies gevonden. Gebruik admin panel om functies toe te voegen.');
+                }
+                if (timeSlots.length === 0) {
+                    console.log('ℹ️ Geen tijdsloten gevonden. Deze kunnen via admin panel toegevoegd worden.');
+                }
+                
             } catch (error) {
                 console.error('❌ Error initializing app:', error);
-                showError('Fout bij het laden van de applicatie');
+                showError('Fout bij het verbinden met Firebase. Controleer de verbinding.');
                 showLoading(false);
                 
-                // Fallback to sample data
-                generateHalloweenData();
+                // Initialize UI anyway for admin access
                 initializeUI();
                 setupEventListeners();
             }
@@ -992,32 +1415,47 @@
                 // Load functions
                 const functionsSnapshot = await window.getDocs(window.collection(window.db, 'functions'));
                 functions = functionsSnapshot.docs.map(doc => ({
-                    id: doc.id,
+                    firebaseId: doc.id,
+                    id: doc.data().id || doc.id,
                     ...doc.data()
                 }));
 
                 // Load time slots
                 const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
                 timeSlots = timeSlotsSnapshot.docs.map(doc => ({
-                    id: doc.id,
+                    firebaseId: doc.id,
+                    id: doc.data().id || doc.id,
                     ...doc.data()
                 }));
 
                 // Load bookings
                 const bookingsSnapshot = await window.getDocs(window.collection(window.db, 'bookings'));
                 bookings = bookingsSnapshot.docs.map(doc => ({
-                    id: doc.id,
+                    firebaseId: doc.id,
+                    id: doc.data().id || doc.id,
                     ...doc.data()
                 }));
 
                 // Load evaluations
                 const evaluationsSnapshot = await window.getDocs(window.collection(window.db, 'evaluations'));
                 evaluations = evaluationsSnapshot.docs.map(doc => ({
-                    id: doc.id,
+                    firebaseId: doc.id,
+                    id: doc.data().id || doc.id,
                     ...doc.data()
                 }));
 
-                console.log('✅ Data loaded:', { functions: functions.length, timeSlots: timeSlots.length, bookings: bookings.length, evaluations: evaluations.length });
+                // Load evaluation questions
+                const evaluationQuestionsSnapshot = await window.getDocs(window.collection(window.db, 'evaluationQuestions'));
+                evaluationQuestions = evaluationQuestionsSnapshot.docs.map(doc => ({
+                    firebaseId: doc.id,
+                    id: doc.data().id || doc.id,
+                    ...doc.data()
+                }));
+                
+                // Sort evaluation questions by order
+                evaluationQuestions.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                console.log('✅ Data loaded:', { functions: functions.length, timeSlots: timeSlots.length, bookings: bookings.length, evaluations: evaluations.length, evaluationQuestions: evaluationQuestions.length });
                 
                 // Ensure all functions have colorIndex for legacy compatibility
                 functions.forEach((func, index) => {
@@ -1025,6 +1463,13 @@
                         func.colorIndex = index % functionColors.length;
                     }
                 });
+                
+                // Show info message if database is empty
+                if (functions.length === 0 && timeSlots.length === 0 && bookings.length === 0) {
+                    console.log('📰 Database is empty - ready for setup via admin panel');
+                } else {
+                    console.log(`📈 Found existing data: ${functions.length} functions, ${timeSlots.length} slots, ${bookings.length} bookings`);
+                }
                 
             } catch (error) {
                 console.error('❌ Error loading data from Firebase:', error);
@@ -1097,49 +1542,151 @@
                 { functionId: 'opruimen', date: '2025-10-18', startTime: '13:00', endTime: '16:00', capacity: 4 }
             ];
 
+            // Only generate if user confirms
+            if (!confirm('Wil je Halloween 2025 voorbeelddata genereren? Dit voegt functies en tijdsloten toe aan Firebase.')) {
+                return;
+            }
+
             try {
                 // Save functions to Firebase
                 for (const func of halloweenFunctions) {
-                    await window.addDoc(window.collection(window.db, 'functions'), func);
+                    const docRef = await window.addDoc(window.collection(window.db, 'functions'), func);
+                    func.firebaseId = docRef.id;
+                    functions.push(func); // Add to local array immediately
                 }
+
+                // Update time slots to use generated function IDs
+                const halloweenTimeSlots = [
+                    // Voorbereiding - 16 oktober
+                    { functionId: functions.find(f => f.name === 'Decoratie')?.id || 'decoratie', date: '2025-10-16', startTime: '14:00', endTime: '17:00', capacity: 4 },
+                    { functionId: functions.find(f => f.name === 'Decoratie')?.id || 'decoratie', date: '2025-10-16', startTime: '17:00', endTime: '20:00', capacity: 3 },
+                    
+                    // Halloween Day - 17 oktober
+                    { functionId: functions.find(f => f.name === 'Ticket Verkoop')?.id || 'ticket-verkoop', date: '2025-10-17', startTime: '18:00', endTime: '20:00', capacity: 2 },
+                    { functionId: functions.find(f => f.name === 'Ticket Verkoop')?.id || 'ticket-verkoop', date: '2025-10-17', startTime: '20:00', endTime: '22:00', capacity: 2 },
+                    { functionId: functions.find(f => f.name === 'Horror House')?.id || 'horror-house', date: '2025-10-17', startTime: '18:30', endTime: '20:30', capacity: 3 },
+                    { functionId: functions.find(f => f.name === 'Horror House')?.id || 'horror-house', date: '2025-10-17', startTime: '20:30', endTime: '22:30', capacity: 3 },
+                    { functionId: functions.find(f => f.name === 'Scare Actors')?.id || 'scare-actors', date: '2025-10-17', startTime: '18:30', endTime: '20:30', capacity: 5 },
+                    { functionId: functions.find(f => f.name === 'Scare Actors')?.id || 'scare-actors', date: '2025-10-17', startTime: '20:30', endTime: '22:30', capacity: 5 },
+                    { functionId: functions.find(f => f.name === 'Catering')?.id || 'catering', date: '2025-10-17', startTime: '18:00', endTime: '21:00', capacity: 3 },
+                    { functionId: functions.find(f => f.name === 'Catering')?.id || 'catering', date: '2025-10-17', startTime: '21:00', endTime: '23:00', capacity: 2 },
+                    
+                    // Opruiming - 18 oktober
+                    { functionId: functions.find(f => f.name === 'Opruimen')?.id || 'opruimen', date: '2025-10-18', startTime: '10:00', endTime: '13:00', capacity: 6 },
+                    { functionId: functions.find(f => f.name === 'Opruimen')?.id || 'opruimen', date: '2025-10-18', startTime: '13:00', endTime: '16:00', capacity: 4 }
+                ];
 
                 // Save time slots to Firebase
                 for (const slot of halloweenTimeSlots) {
                     const slotData = {
                         ...slot,
                         id: generateId(),
-                        booked: Math.floor(Math.random() * (slot.capacity / 2)), // Random bookings
+                        booked: 0, // Start with empty slots
                         volunteers: []
                     };
-                    await window.addDoc(window.collection(window.db, 'timeSlots'), slotData);
+                    const docRef = await window.addDoc(window.collection(window.db, 'timeSlots'), slotData);
+                    slotData.firebaseId = docRef.id;
+                    timeSlots.push(slotData); // Add to local array immediately
                 }
 
-                // Reload data from Firebase
-                await loadDataFromFirebase();
+                // Generate default evaluation questions if none exist
+                if (evaluationQuestions.length === 0) {
+                    const defaultQuestions = [
+                        {
+                            id: generateId(),
+                            type: 'text',
+                            fieldName: 'evalName',
+                            label: 'Je naam (optioneel):',
+                            placeholder: 'Naam',
+                            required: false,
+                            order: 1
+                        },
+                        {
+                            id: generateId(),
+                            type: 'select',
+                            fieldName: 'evalFunction',
+                            label: 'Voor welke functie was je vrijwilliger?',
+                            options: 'functions', // Special value to load from functions
+                            required: true,
+                            order: 2
+                        },
+                        {
+                            id: generateId(),
+                            type: 'rating',
+                            fieldName: 'organizationRating',
+                            label: 'Hoe beoordeel je de organisatie? (1-5 sterren)',
+                            min: 1,
+                            max: 5,
+                            required: true,
+                            order: 3
+                        },
+                        {
+                            id: generateId(),
+                            type: 'textarea',
+                            fieldName: 'evalPositive',
+                            label: 'Wat ging er goed?',
+                            placeholder: 'Positieve punten...',
+                            required: false,
+                            order: 4
+                        },
+                        {
+                            id: generateId(),
+                            type: 'textarea',
+                            fieldName: 'evalImprovements',
+                            label: 'Wat kan er beter?',
+                            placeholder: 'Verbeterpunten...',
+                            required: false,
+                            order: 5
+                        },
+                        {
+                            id: generateId(),
+                            type: 'select',
+                            fieldName: 'evalVolunteerAgain',
+                            label: 'Wil je volgend jaar weer vrijwilliger zijn?',
+                            options: [{
+                                value: '',
+                                label: 'Maak een keuze...'
+                            }, {
+                                value: 'yes',
+                                label: 'Ja, zeker!'
+                            }, {
+                                value: 'maybe',
+                                label: 'Misschien'
+                            }, {
+                                value: 'no',
+                                label: 'Nee'
+                            }],
+                            required: true,
+                            order: 6
+                        },
+                        {
+                            id: generateId(),
+                            type: 'textarea',
+                            fieldName: 'evalComments',
+                            label: 'Overige opmerkingen:',
+                            placeholder: 'Opmerkingen...',
+                            required: false,
+                            order: 7
+                        }
+                    ];
+
+                    // Save default evaluation questions to Firebase
+                    for (const question of defaultQuestions) {
+                        const docRef = await window.addDoc(window.collection(window.db, 'evaluationQuestions'), question);
+                        question.firebaseId = docRef.id;
+                        evaluationQuestions.push(question);
+                    }
+                }
 
                 console.log('✅ Halloween sample data generated successfully!');
-                showSuccess('🎃 Halloween planning data geladen!');
+                showSuccess(`🎃 ${halloweenFunctions.length} functies en ${halloweenTimeSlots.length} tijdsloten toegevoegd!`);
+                
+                // Refresh UI
+                initializeUI();
 
             } catch (error) {
                 console.error('❌ Error generating sample data:', error);
-                
-                // Fallback to local data if Firebase fails
-                functions = halloweenFunctions;
-                timeSlots = halloweenTimeSlots.map(slot => ({
-                    ...slot,
-                    id: generateId(),
-                    booked: Math.floor(Math.random() * (slot.capacity / 2)),
-                    volunteers: []
-                }));
-                
-                // Ensure all functions have colorIndex for fallback
-                functions.forEach((func, index) => {
-                    if (func.colorIndex === undefined) {
-                        func.colorIndex = index % functionColors.length;
-                    }
-                });
-                
-                showError('Firebase niet beschikbaar - lokale data geladen');
+                showError('Fout bij het genereren van voorbeelddata: ' + error.message);
             }
         }
 
@@ -1157,16 +1704,6 @@
                 functionFilter.appendChild(option);
             });
 
-            // Populate evaluation function dropdown
-            const evalFunction = document.getElementById('evalFunction');
-            evalFunction.innerHTML = '<option value="">Kies een functie...</option>';
-            functions.forEach(func => {
-                const option = document.createElement('option');
-                option.value = func.id;
-                option.textContent = func.name;
-                evalFunction.appendChild(option);
-            });
-
             // Render initial view
             renderSchedule();
         }
@@ -1179,9 +1716,6 @@
             // Evaluation form
             document.getElementById('evalForm').addEventListener('submit', handleEvaluationSubmit);
             
-            // Rating stars
-            setupRatingStars();
-            
             // Admin login
             document.getElementById('loginForm').addEventListener('submit', handleAdminLogin);
             
@@ -1190,6 +1724,9 @@
             
             // Timeslot form
             document.getElementById('timeslotForm').addEventListener('submit', handleTimeslotSubmit);
+            
+            // Evaluation question form
+            document.getElementById('evaluationQuestionForm').addEventListener('submit', handleEvaluationQuestionSubmit);
             
             // Modal close on outside click - prevent event bubbling issues
             document.querySelectorAll('.modal').forEach(modal => {
@@ -1341,16 +1878,53 @@
                 // Save booking to Firebase
                 await window.addDoc(window.collection(window.db, 'bookings'), formData);
                 
-                // Update time slot
-                const slotRef = window.doc(window.db, 'timeSlots', currentBookingSlot.id);
-                await window.updateDoc(slotRef, {
-                    booked: currentBookingSlot.booked + 1,
-                    volunteers: [...(currentBookingSlot.volunteers || []), {
-                        name: formData.name,
-                        email: formData.email,
-                        phone: formData.phone
-                    }]
-                });
+                // Try to update time slot in Firebase
+                let firebaseSlotId = currentBookingSlot.firebaseId;
+                
+                // If no direct firebaseId, search for it
+                if (!firebaseSlotId) {
+                    const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
+                    
+                    timeSlotsSnapshot.docs.forEach(doc => {
+                        const data = doc.data();
+                        // Match by all slot properties to find the correct document
+                        if (data.functionId === currentBookingSlot.functionId &&
+                            data.date === currentBookingSlot.date &&
+                            data.startTime === currentBookingSlot.startTime &&
+                            data.endTime === currentBookingSlot.endTime &&
+                            data.capacity === currentBookingSlot.capacity) {
+                            firebaseSlotId = doc.id;
+                        }
+                    });
+                }
+                
+                // Update time slot if Firebase ID found
+                if (firebaseSlotId) {
+                    try {
+                        const slotRef = window.doc(window.db, 'timeSlots', firebaseSlotId);
+                        await window.updateDoc(slotRef, {
+                            booked: currentBookingSlot.booked + 1,
+                            volunteers: [...(currentBookingSlot.volunteers || []), {
+                                name: formData.name,
+                                email: formData.email,
+                                phone: formData.phone
+                            }]
+                        });
+                        console.log('✅ Timeslot updated in Firebase with ID:', firebaseSlotId);
+                    } catch (updateError) {
+                        console.error('❌ Error updating timeslot in Firebase:', updateError);
+                        // Continue with local data update even if Firebase fails
+                    }
+                } else {
+                    console.warn('⚠️ Firebase timeslot not found, updating local data only');
+                    console.log('Looking for slot:', {
+                        functionId: currentBookingSlot.functionId,
+                        date: currentBookingSlot.date,
+                        startTime: currentBookingSlot.startTime,
+                        endTime: currentBookingSlot.endTime,
+                        capacity: currentBookingSlot.capacity
+                    });
+                }
 
                 // Send confirmation email
                 await sendConfirmationEmail(formData);
@@ -1433,67 +2007,185 @@
             if (today >= evaluationDate) {
                 document.getElementById('evaluationForm').style.display = 'block';
                 document.getElementById('evaluationClosed').style.display = 'none';
+                
+                // Generate dynamic form based on evaluation questions
+                generateDynamicEvaluationForm();
             } else {
                 document.getElementById('evaluationForm').style.display = 'none';
                 document.getElementById('evaluationClosed').style.display = 'block';
             }
         }
-
-        function setupRatingStars() {
-            const stars = document.querySelectorAll('#organizationRating .star');
+        
+        function generateDynamicEvaluationForm() {
+            const formContainer = document.getElementById('evalForm');
+            if (!formContainer) return;
+            
+            // Clear existing form content (except submit button)
+            const submitButton = formContainer.querySelector('button[type="submit"]');
+            formContainer.innerHTML = '';
+            
+            // Generate form fields based on evaluationQuestions
+            evaluationQuestions.forEach(question => {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+                
+                let fieldHTML = `
+                    <label class="form-label">${question.label}${question.required ? ' *' : ''}:</label>
+                `;
+                
+                switch (question.type) {
+                    case 'text':
+                        fieldHTML += `<input type="text" id="${question.fieldName}" class="form-input" placeholder="${question.placeholder || ''}" ${question.required ? 'required' : ''}>`;
+                        break;
+                        
+                    case 'textarea':
+                        fieldHTML += `<textarea id="${question.fieldName}" class="textarea" placeholder="${question.placeholder || ''}" ${question.required ? 'required' : ''}></textarea>`;
+                        break;
+                        
+                    case 'select':
+                        fieldHTML += `<select id="${question.fieldName}" class="form-input" ${question.required ? 'required' : ''}>`;
+                        
+                        if (question.options === 'functions') {
+                            fieldHTML += '<option value="">Kies een functie...</option>';
+                            functions.forEach(func => {
+                                fieldHTML += `<option value="${func.id}">${func.name}</option>`;
+                            });
+                        } else if (Array.isArray(question.options)) {
+                            question.options.forEach(option => {
+                                fieldHTML += `<option value="${option.value}">${option.label}</option>`;
+                            });
+                        }
+                        
+                        fieldHTML += '</select>';
+                        break;
+                        
+                    case 'rating':
+                        fieldHTML += `
+                            <div class="rating-stars" id="${question.fieldName}Rating">
+                        `;
+                        for (let i = question.min || 1; i <= (question.max || 5); i++) {
+                            fieldHTML += `<span class="star" data-rating="${i}">⭐</span>`;
+                        }
+                        fieldHTML += '</div>';
+                        break;
+                }
+                
+                formGroup.innerHTML = fieldHTML;
+                formContainer.appendChild(formGroup);
+                
+                // Setup rating functionality for rating questions
+                if (question.type === 'rating') {
+                    setupRatingStarsForField(question.fieldName, question.min || 1, question.max || 5);
+                }
+            });
+            
+            // Add submit button back
+            const submitContainer = document.createElement('div');
+            submitContainer.innerHTML = '<button type="submit" class="btn btn-primary">📝 Evaluatie Versturen</button>';
+            formContainer.appendChild(submitContainer);
+        }
+        
+        function setupRatingStarsForField(fieldName, min, max) {
+            const stars = document.querySelectorAll(`#${fieldName}Rating .star`);
             let selectedRating = 0;
 
             stars.forEach((star, index) => {
+                const rating = parseInt(star.dataset.rating);
+                
                 star.addEventListener('click', () => {
-                    selectedRating = index + 1;
-                    updateStars(selectedRating);
+                    selectedRating = rating;
+                    updateFieldStars(fieldName, selectedRating, min, max);
                 });
 
                 star.addEventListener('mouseover', () => {
-                    updateStars(index + 1);
+                    updateFieldStars(fieldName, rating, min, max);
                 });
             });
 
-            document.getElementById('organizationRating').addEventListener('mouseleave', () => {
-                updateStars(selectedRating);
+            document.getElementById(`${fieldName}Rating`).addEventListener('mouseleave', () => {
+                updateFieldStars(fieldName, selectedRating, min, max);
             });
 
-            function updateStars(rating) {
-                stars.forEach((star, index) => {
-                    star.classList.toggle('active', index < rating);
+            function updateFieldStars(fieldName, rating, min, max) {
+                const fieldStars = document.querySelectorAll(`#${fieldName}Rating .star`);
+                fieldStars.forEach((star, index) => {
+                    const starRating = parseInt(star.dataset.rating);
+                    star.classList.toggle('active', starRating <= rating);
                 });
-                document.getElementById('organizationRating').dataset.rating = rating;
+                document.getElementById(`${fieldName}Rating`).dataset.rating = rating;
+            }
+        }
+        
+        function updateEvaluationTab() {
+            // Refresh the evaluation form when questions change
+            if (document.getElementById('evaluationTab').classList.contains('active')) {
+                checkEvaluationAvailability();
             }
         }
 
         async function handleEvaluationSubmit(e) {
             e.preventDefault();
             
-            const rating = document.getElementById('organizationRating').dataset.rating;
-            if (!rating || rating < 1) {
-                showError('Geef een beoordeling van 1-5 sterren');
-                return;
-            }
-
+            // Collect data from all dynamic form fields
             const evaluation = {
-                name: document.getElementById('evalName').value || null,
-                functionId: document.getElementById('evalFunction').value,
-                organizationRating: parseInt(rating),
-                positive: document.getElementById('evalPositive').value || null,
-                improvements: document.getElementById('evalImprovements').value || null,
-                volunteerAgain: document.getElementById('evalVolunteerAgain').value,
-                comments: document.getElementById('evalComments').value || null,
                 submittedDate: new Date().toLocaleDateString('nl-NL')
             };
+            
+            let hasRequiredFieldError = false;
+            
+            // Process each question and collect its value
+            evaluationQuestions.forEach(question => {
+                const fieldElement = document.getElementById(question.fieldName);
+                let value = null;
+                
+                switch (question.type) {
+                    case 'text':
+                    case 'textarea':
+                        value = fieldElement ? fieldElement.value.trim() : '';
+                        break;
+                    case 'select':
+                        value = fieldElement ? fieldElement.value : '';
+                        break;
+                    case 'rating':
+                        const ratingElement = document.getElementById(question.fieldName + 'Rating');
+                        value = ratingElement ? parseInt(ratingElement.dataset.rating || '0') : 0;
+                        break;
+                }
+                
+                // Check required fields
+                if (question.required && (!value || (question.type === 'rating' && value < (question.min || 1)))) {
+                    showError(`Veld '${question.label}' is verplicht`);
+                    hasRequiredFieldError = true;
+                    return;
+                }
+                
+                // Store the value (only if not empty for optional fields)
+                if (value !== null && value !== '' && !(question.type === 'rating' && value === 0)) {
+                    evaluation[question.fieldName] = value;
+                }
+            });
+            
+            if (hasRequiredFieldError) {
+                return;
+            }
 
             try {
                 await window.addDoc(window.collection(window.db, 'evaluations'), evaluation);
                 evaluations.push(evaluation);
                 
+                // Reset form
                 document.getElementById('evalForm').reset();
-                document.getElementById('organizationRating').dataset.rating = '0';
-                document.querySelectorAll('#organizationRating .star').forEach(star => {
-                    star.classList.remove('active');
+                
+                // Reset all rating stars
+                evaluationQuestions.forEach(question => {
+                    if (question.type === 'rating') {
+                        const ratingElement = document.getElementById(question.fieldName + 'Rating');
+                        if (ratingElement) {
+                            ratingElement.dataset.rating = '0';
+                            const stars = ratingElement.querySelectorAll('.star');
+                            stars.forEach(star => star.classList.remove('active'));
+                        }
+                    }
                 });
                 
                 showSuccess('🌟 Bedankt voor je evaluatie!');
@@ -1916,13 +2608,20 @@
         }
 
         function showAdminSection(section) {
-            // Update button states
+            // Update button states based on section
             document.querySelectorAll('.admin-nav .btn').forEach(btn => {
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-secondary');
             });
-            event.target.classList.remove('btn-secondary');
-            event.target.classList.add('btn-primary');
+            
+            // Find and activate the correct button based on onclick attribute
+            document.querySelectorAll('.admin-nav .btn').forEach(btn => {
+                const onclickAttr = btn.getAttribute('onclick');
+                if (onclickAttr && onclickAttr.includes(`'${section}'`)) {
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary');
+                }
+            });
 
             const content = document.getElementById('adminContent');
             
@@ -1941,6 +2640,9 @@
                     break;
                 case 'evaluations':
                     showAdminEvaluations(content);
+                    break;
+                case 'evaluation-form':
+                    showAdminEvaluationForm(content);
                     break;
                 case 'settings':
                     showAdminSettings(content);
@@ -2014,6 +2716,7 @@
                                     <th style="padding: 12px; text-align: left;">Functie</th>
                                     <th style="padding: 12px; text-align: left;">Datum</th>
                                     <th style="padding: 12px; text-align: left;">Tijd</th>
+                                    <th style="padding: 12px; text-align: center;">Acties</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2022,22 +2725,32 @@
             if (bookings.length === 0) {
                 html += `
                     <tr>
-                        <td colspan="6" style="padding: 40px; text-align: center; color: #6b7280;">
+                        <td colspan="7" style="padding: 40px; text-align: center; color: #6b7280;">
                             Nog geen boekingen ontvangen
                         </td>
                     </tr>
                 `;
             } else {
-                bookings.forEach(booking => {
+                bookings.forEach((booking, index) => {
                     const func = functions.find(f => f.id === booking.functionId);
+                    const bookingDate = new Date(booking.bookingDate).toLocaleDateString('nl-NL');
                     html += `
-                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <tr style="border-bottom: 1px solid #e5e7eb;" data-booking-index="${index}">
                             <td style="padding: 12px; font-weight: 600;">${booking.name}</td>
                             <td style="padding: 12px;"><a href="mailto:${booking.email}" style="color: var(--primary-color);">${booking.email}</a></td>
                             <td style="padding: 12px;">${booking.phone || 'Niet opgegeven'}</td>
                             <td style="padding: 12px; color: var(--primary-color); font-weight: 500;">${func ? func.name : 'Onbekend'}</td>
                             <td style="padding: 12px;">${formatDate(booking.date)}</td>
                             <td style="padding: 12px;">${booking.startTime} - ${booking.endTime}</td>
+                            <td style="padding: 12px; text-align: center;">
+                                <button class="btn admin-delete-booking-btn" style="padding: 6px 10px; font-size: 0.8rem; background: #dc2626; color: white;" 
+                                        data-booking-id="${booking.id || index}" 
+                                        data-timeslot-id="${booking.slotId}" 
+                                        data-booking-email="${booking.email}"
+                                        data-booking-name="${booking.name}">
+                                    🗑️ Verwijder
+                                </button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -2055,6 +2768,20 @@
             `;
             
             container.innerHTML = html;
+            
+            // Add event listeners for delete buttons
+            document.querySelectorAll('.admin-delete-booking-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const bookingId = this.getAttribute('data-booking-id');
+                    const timeslotId = this.getAttribute('data-timeslot-id');
+                    const bookingEmail = this.getAttribute('data-booking-email');
+                    const bookingName = this.getAttribute('data-booking-name');
+                    
+                    deleteBookingFromAdmin(bookingId, timeslotId, bookingEmail, bookingName);
+                });
+            });
         }
 
         function showAdminFunctions(container) {
@@ -2198,6 +2925,7 @@
                             <td style="padding: 8px 10px; text-align: center;">
                                 <div style="display: flex; gap: 5px; justify-content: center;">
                                     <button class="btn timeslot-edit-btn" style="padding: 4px 8px; font-size: 0.7rem; background: ${color.primary}; color: white;" data-timeslot-id="${slot.id}">✏️ Bewerk</button>
+                                    ${slot.booked > 0 ? `<button class="btn timeslot-bookings-btn" style="padding: 4px 8px; font-size: 0.7rem; background: #0891b2; color: white;" data-timeslot-id="${slot.id}">👥 Boekingen (${slot.booked})</button>` : ''}
                                     <button class="btn timeslot-delete-btn" style="padding: 4px 8px; font-size: 0.7rem; background: #dc2626; color: white;" data-timeslot-id="${slot.id}">🗑️ Verwijder</button>
                                 </div>
                             </td>
@@ -2223,6 +2951,15 @@
                     e.stopPropagation();
                     const timeslotId = this.getAttribute('data-timeslot-id');
                     editTimeslot(timeslotId);
+                });
+            });
+            
+            document.querySelectorAll('.timeslot-bookings-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const timeslotId = this.getAttribute('data-timeslot-id');
+                    showTimeslotBookings(timeslotId);
                 });
             });
             
@@ -2281,6 +3018,83 @@
             container.innerHTML = html;
         }
 
+        function showAdminEvaluationForm(container) {
+            let html = `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>📝 Evaluatie Formulier Beheer (${evaluationQuestions.length})</h2>
+                        <button class="btn btn-primary" onclick="openAddEvaluationQuestionModal()">➕ Nieuwe Vraag</button>
+                    </div>
+            `;
+            
+            if (evaluationQuestions.length === 0) {
+                html += `
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+                        <div style="font-size: 1.2rem; margin-bottom: 10px;">Nog geen evaluatievragen</div>
+                        <div style="font-size: 0.9rem;">Voeg vragen toe om het evaluatieformulier in te richten</div>
+                    </div>
+                `;
+            } else {
+                // Show current questions
+                html += `
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="margin-bottom: 15px;">Huidige Vragen</h3>
+                        <div style="display: grid; gap: 15px;">
+                `;
+                
+                evaluationQuestions.forEach((question, index) => {
+                    const typeLabel = {
+                        'text': 'Tekstveld',
+                        'textarea': 'Tekstgebied', 
+                        'select': 'Keuzelijst',
+                        'rating': 'Sterren beoordeling'
+                    }[question.type] || question.type;
+                    
+                    html += `
+                        <div class="function-card" style="padding: 15px; border: 2px solid #e5e7eb;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: var(--text-color); margin-bottom: 5px;">
+                                        ${question.order}. ${question.label}
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">
+                                        Type: <strong>${typeLabel}</strong> | Veld: <code>${question.fieldName}</code> | 
+                                        ${question.required ? '<span style="color: #dc2626;">Verplicht</span>' : '<span style="color: #6b7280;">Optioneel</span>'}
+                                    </div>
+                                    ${question.placeholder ? `<div style="font-size: 0.8rem; color: #9ca3af;">Placeholder: "${question.placeholder}"</div>` : ''}
+                                    ${question.type === 'rating' ? `<div style="font-size: 0.8rem; color: #9ca3af;">Bereik: ${question.min || 1}-${question.max || 5}</div>` : ''}
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 0.8rem;" onclick="editEvaluationQuestion('${question.id}')">✏️ Bewerken</button>
+                                    <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 0.8rem; background: #dc2626; color: white;" onclick="deleteEvaluationQuestion('${question.id}')">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                    <div style="margin-top: 30px;">
+                        <h3 style="margin-bottom: 15px;">Voorbeeld Formulier</h3>
+                        <div style="background: #f8fafc; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px;">
+                            <div id="evaluationPreview">
+                                ${renderEvaluationFormPreview()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
         function showAdminSettings(container) {
             container.innerHTML = `
                 <div class="card">
@@ -2291,7 +3105,7 @@
                             <h3>🔄 Data Beheer</h3>
                             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
                                 <button class="btn btn-secondary" onclick="exportAllData()">📥 Export Alle Data</button>
-                                <button class="btn btn-secondary" onclick="generateSampleData()">🎲 Genereer Testdata</button>
+                                <button class="btn btn-secondary" onclick="generateHalloweenData()">🎃 Genereer Halloween Data</button>
                                 <button class="btn btn-secondary" onclick="clearAllData()">🗑️ Wis Alle Data</button>
                             </div>
                         </div>
@@ -2418,6 +3232,904 @@
             }
 
             showSuccess(`✅ ${successCount} herinneringen verstuurd`);
+        }
+
+        // Export Schedule to Print Function
+        function exportScheduleToPrint() {
+            // Create a new window for printing
+            const printWindow = window.open('', '_blank', 'width=1200,height=800');
+            
+            // Get current schedule data
+            const slotsByDate = {};
+            timeSlots.forEach(slot => {
+                if (selectedFunction !== 'all' && slot.functionId !== selectedFunction) return;
+                
+                if (!slotsByDate[slot.date]) {
+                    slotsByDate[slot.date] = [];
+                }
+                slotsByDate[slot.date].push(slot);
+            });
+            
+            // Generate print HTML
+            let printHTML = `
+                <!DOCTYPE html>
+                <html lang="nl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Halloween 2025 Planning - De Puzzel</title>
+                    <style>
+                        body {
+                            font-family: 'Arial', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            background: white;
+                            color: #1f2937;
+                            line-height: 1.4;
+                        }
+                        
+                        .print-header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            padding: 20px;
+                            border-bottom: 3px solid #16a34a;
+                        }
+                        
+                        .print-header h1 {
+                            color: #16a34a;
+                            font-size: 2.5rem;
+                            margin-bottom: 10px;
+                            font-weight: bold;
+                        }
+                        
+                        .print-header p {
+                            font-size: 1.2rem;
+                            color: #6b7280;
+                            margin: 5px 0;
+                        }
+                        
+                        .print-date-section {
+                            page-break-inside: avoid;
+                            margin-bottom: 30px;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 8px;
+                            overflow: hidden;
+                        }
+                        
+                        .print-date-header {
+                            background: #16a34a;
+                            color: white;
+                            padding: 15px 20px;
+                            font-size: 1.4rem;
+                            font-weight: bold;
+                            margin: 0;
+                        }
+                        
+                        .print-timeslots {
+                            padding: 20px;
+                        }
+                        
+                        .print-timeslot {
+                            border: 1px solid #d1d5db;
+                            border-radius: 6px;
+                            padding: 15px;
+                            margin-bottom: 15px;
+                            background: #f8fafc;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+                        
+                        .print-timeslot-info {
+                            flex: 1;
+                        }
+                        
+                        .print-function-name {
+                            font-weight: bold;
+                            color: #16a34a;
+                            font-size: 1.1rem;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .print-function-desc {
+                            color: #6b7280;
+                            font-size: 0.9rem;
+                            margin-bottom: 8px;
+                        }
+                        
+                        .print-time {
+                            font-weight: 600;
+                            font-size: 1rem;
+                            color: #374151;
+                        }
+                        
+                        .print-capacity {
+                            text-align: right;
+                            min-width: 120px;
+                        }
+                        
+                        .print-capacity-available {
+                            color: #16a34a;
+                            font-weight: bold;
+                            font-size: 1.1rem;
+                        }
+                        
+                        .print-capacity-full {
+                            color: #dc2626;
+                            font-weight: bold;
+                            font-size: 1.1rem;
+                        }
+                        
+                        .print-capacity-total {
+                            color: #6b7280;
+                            font-size: 0.9rem;
+                        }
+                        
+                        .print-footer {
+                            margin-top: 40px;
+                            text-align: center;
+                            color: #6b7280;
+                            font-size: 0.9rem;
+                            padding-top: 20px;
+                            border-top: 1px solid #e5e7eb;
+                        }
+                        
+                        @page {
+                            size: A4 landscape;
+                            margin: 1.5cm;
+                        }
+                        
+                        @media print {
+                            body {
+                                font-size: 12px;
+                            }
+                            
+                            .print-date-section {
+                                page-break-inside: avoid;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-header">
+                        <h1>🎃 Halloween 2025</h1>
+                        <p><strong>Vrijwilligersplanning De Puzzel</strong></p>
+                        <p>Gegenereerd op: ${new Date().toLocaleDateString('nl-NL', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</p>
+                        ${selectedFunction !== 'all' ? `<p><em>Gefilterd op: ${functions.find(f => f.id === selectedFunction)?.name || 'Onbekend'}</em></p>` : ''}
+                    </div>
+            `;
+            
+            // Add schedule data
+            Object.keys(slotsByDate).sort().forEach(date => {
+                const dateSlots = slotsByDate[date];
+                
+                printHTML += `
+                    <div class="print-date-section">
+                        <div class="print-date-header">${formatDate(date)}</div>
+                        <div class="print-timeslots">
+                `;
+                
+                dateSlots.sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
+                    const func = functions.find(f => f.id === slot.functionId);
+                    const available = slot.capacity - slot.booked;
+                    const isAvailable = available > 0;
+                    
+                    printHTML += `
+                        <div class="print-timeslot">
+                            <div class="print-timeslot-info">
+                                <div class="print-function-name">${func?.name || 'Onbekende functie'}</div>
+                                <div class="print-function-desc">${func?.description || ''}</div>
+                                <div class="print-time">🕐 ${slot.startTime} - ${slot.endTime}</div>
+                            </div>
+                            <div class="print-capacity">
+                                <div class="${isAvailable ? 'print-capacity-available' : 'print-capacity-full'}">
+                                    ${isAvailable ? `${available} vrij` : 'VOL'}
+                                </div>
+                                <div class="print-capacity-total">
+                                    ${slot.booked}/${slot.capacity} geboekt
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                printHTML += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Add footer
+            const totalCapacity = timeSlots.reduce((sum, slot) => sum + slot.capacity, 0);
+            const totalBooked = timeSlots.reduce((sum, slot) => sum + slot.booked, 0);
+            const totalAvailable = totalCapacity - totalBooked;
+            
+            printHTML += `
+                    <div class="print-footer">
+                        <p><strong>Totaal overzicht:</strong> ${totalBooked}/${totalCapacity} plekken geboekt (⋅ ${totalAvailable} beschikbaar)</p>
+                        <p>Voor meer informatie en boekingen: zie online planning systeem</p>
+                        <p><em>De Puzzel - Halloween 2025 Vrijwilligersplanning</em></p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // Write to print window and print
+            printWindow.document.write(printHTML);
+            printWindow.document.close();
+            
+            // Wait for content to load, then print
+            printWindow.onload = function() {
+                setTimeout(() => {
+                    printWindow.focus();
+                    printWindow.print();
+                    // Close window after printing (user can cancel)
+                    setTimeout(() => {
+                        if (!printWindow.closed) {
+                            printWindow.close();
+                        }
+                    }, 1000);
+                }, 500);
+            };
+            
+            showSuccess('🖨️ Print venster geopend - planning klaar voor afdrukken!');
+        }
+
+        // Print Schedule Export
+        function exportScheduleToPrint() {
+            // Create print content
+            const printContent = generatePrintableSchedule();
+            
+            // Open new window for printing
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            printWindow.document.open();
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Halloween 2025 - Vrijwilligers Planning</title>
+                    <style>
+                        @page {
+                            size: A4 landscape;
+                            margin: 1cm;
+                        }
+                        
+                        body {
+                            font-family: Arial, sans-serif;
+                            font-size: 11px;
+                            line-height: 1.3;
+                            color: #000;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        
+                        .print-header {
+                            text-align: center;
+                            margin-bottom: 15px;
+                            padding-bottom: 10px;
+                            border-bottom: 2px solid #16a34a;
+                        }
+                        
+                        .print-header h1 {
+                            font-size: 18px;
+                            margin: 0 0 5px 0;
+                            color: #16a34a;
+                        }
+                        
+                        .print-header .subtitle {
+                            font-size: 12px;
+                            color: #666;
+                            margin: 0;
+                        }
+                        
+                        .print-date-section {
+                            page-break-inside: avoid;
+                            margin-bottom: 20px;
+                        }
+                        
+                        .print-date-header {
+                            background: #16a34a;
+                            color: white;
+                            padding: 8px 12px;
+                            font-size: 14px;
+                            font-weight: bold;
+                            margin-bottom: 8px;
+                        }
+                        
+                        .print-schedule-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 15px;
+                            font-size: 10px;
+                        }
+                        
+                        .print-schedule-table th {
+                            background: #f0f9f4;
+                            border: 1px solid #d1d5db;
+                            padding: 6px 8px;
+                            text-align: left;
+                            font-weight: bold;
+                            font-size: 10px;
+                        }
+                        
+                        .print-schedule-table td {
+                            border: 1px solid #d1d5db;
+                            padding: 5px 8px;
+                            vertical-align: top;
+                        }
+                        
+                        .function-name {
+                            font-weight: bold;
+                            color: #16a34a;
+                        }
+                        
+                        .time-slot {
+                            font-weight: 600;
+                        }
+                        
+                        .capacity-info {
+                            font-size: 9px;
+                            color: #666;
+                        }
+                        
+                        .volunteer-name {
+                            display: block;
+                            margin-bottom: 3px;
+                            font-size: 9px;
+                            padding: 2px 0;
+                        }
+                        
+                        .volunteer-name:last-child {
+                            margin-bottom: 0;
+                        }
+                        
+                        .no-volunteers {
+                            color: #ef4444;
+                            font-style: italic;
+                            font-size: 9px;
+                            padding: 2px 0;
+                        }
+                        
+                        .function-section {
+                            page-break-inside: avoid;
+                            margin-bottom: 20px;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 6px;
+                            padding: 0;
+                            overflow: hidden;
+                        }
+                        
+                        .function-header {
+                            border-radius: 4px;
+                            margin-bottom: 8px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+                        
+                        .print-footer {
+                            margin-top: 20px;
+                            padding-top: 10px;
+                            border-top: 1px solid #d1d5db;
+                            font-size: 9px;
+                            color: #666;
+                            text-align: center;
+                        }
+                        
+                        .stats-summary {
+                            display: flex;
+                            justify-content: space-around;
+                            margin-bottom: 15px;
+                            font-size: 10px;
+                        }
+                        
+                        .stat-item {
+                            text-align: center;
+                            padding: 5px;
+                        }
+                        
+                        .stat-number {
+                            font-size: 14px;
+                            font-weight: bold;
+                            color: #16a34a;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            
+            // Wait for content to load, then print
+            printWindow.onload = function() {
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 100);
+            };
+        }
+        
+        function generatePrintableSchedule() {
+            const slotsByDate = {};
+            
+            // Group slots by date
+            timeSlots.forEach(slot => {
+                if (!slotsByDate[slot.date]) {
+                    slotsByDate[slot.date] = [];
+                }
+                slotsByDate[slot.date].push(slot);
+            });
+            
+            // Calculate statistics using actual bookings
+            const totalCapacity = timeSlots.reduce((sum, slot) => sum + slot.capacity, 0);
+            const totalActualBooked = timeSlots.reduce((sum, slot) => {
+                const slotActualBookings = bookings.filter(booking => booking.slotId === slot.id);
+                return sum + slotActualBookings.length;
+            }, 0);
+            const totalAvailable = totalCapacity - totalActualBooked;
+            const fillRate = totalCapacity > 0 ? Math.round((totalActualBooked / totalCapacity) * 100) : 0;
+            
+            let html = `
+                <div class="print-header">
+                    <h1>🎃 Halloween 2025 - Vrijwilligers Planning</h1>
+                    <p class="subtitle">De Puzzel • Gegenereerd op ${new Date().toLocaleDateString('nl-NL')} om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+                
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-number">${functions.length}</div>
+                        <div>Functies</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${timeSlots.length}</div>
+                        <div>Tijdsloten</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${totalActualBooked}</div>
+                        <div>Geboekt</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${totalAvailable}</div>
+                        <div>Beschikbaar</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${fillRate}%</div>
+                        <div>Bezetting</div>
+                    </div>
+                </div>
+            `;
+            
+            // Generate content for each date
+            Object.keys(slotsByDate).sort().forEach(date => {
+                const dateSlots = slotsByDate[date];
+                
+                html += `
+                    <div class="print-date-section">
+                        <div class="print-date-header">${formatDate(date)}</div>
+                `;
+                
+                // Group slots by function within this date
+                const slotsByFunction = {};
+                dateSlots.forEach(slot => {
+                    if (!slotsByFunction[slot.functionId]) {
+                        slotsByFunction[slot.functionId] = [];
+                    }
+                    slotsByFunction[slot.functionId].push(slot);
+                });
+                
+                // Sort functions by name for consistent ordering
+                const sortedFunctionIds = Object.keys(slotsByFunction).sort((a, b) => {
+                    const funcA = functions.find(f => f.id === a);
+                    const funcB = functions.find(f => f.id === b);
+                    return (funcA?.name || '').localeCompare(funcB?.name || '');
+                });
+                
+                // Generate content for each function
+                sortedFunctionIds.forEach((functionId, index) => {
+                    const functionSlots = slotsByFunction[functionId];
+                    const func = functions.find(f => f.id === functionId);
+                    const color = getFunctionColorById(functionId);
+                    
+                    // Calculate function totals using actual bookings
+                    const functionCapacity = functionSlots.reduce((sum, slot) => sum + slot.capacity, 0);
+                    const functionActualBooked = functionSlots.reduce((sum, slot) => {
+                        const slotActualBookings = bookings.filter(booking => booking.slotId === slot.id);
+                        return sum + slotActualBookings.length;
+                    }, 0);
+                    const functionAvailable = functionCapacity - functionActualBooked;
+                    
+                    html += `
+                        <div class="function-section" style="margin-bottom: 20px; ${index > 0 ? 'margin-top: 25px;' : ''}">
+                            <div class="function-header" style="background: ${color.primary}; color: white; padding: 10px 15px; margin-bottom: 0; border-radius: 6px 6px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-weight: bold; font-size: 12px;">${func ? func.name : 'Onbekende Functie'}</div>
+                                <div style="font-size: 10px; opacity: 0.9;">${functionActualBooked}/${functionCapacity} bezet • ${functionAvailable} vrij</div>
+                            </div>
+                            
+                            <table class="print-schedule-table" style="margin-bottom: 0; border-radius: 0 0 6px 6px; overflow: hidden;">
+                                <thead>
+                                    <tr style="background-color: rgba(${parseInt(color.primary.slice(1, 3), 16)}, ${parseInt(color.primary.slice(3, 5), 16)}, ${parseInt(color.primary.slice(5, 7), 16)}, 0.1);">
+                                        <th style="width: 20%;">Tijd</th>
+                                        <th style="width: 15%;">Capaciteit</th>
+                                        <th style="width: 12%;">Status</th>
+                                        <th style="width: 53%;">Vrijwilligers</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    // Sort slots by start time
+                    functionSlots.sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
+                        const slotBookings = bookings.filter(booking => booking.slotId === slot.id);
+                        const actualBooked = slotBookings.length; // Use actual bookings count
+                        const available = slot.capacity - actualBooked; // Use actual count
+                        const isAvailable = available > 0;
+                        
+                        let volunteersHtml = '';
+                        if (slotBookings.length > 0) {
+                            volunteersHtml = slotBookings.map(booking => {
+                                return `<div class="volunteer-name">• ${booking.name}</div>`;
+                            }).join('');
+                        } else {
+                            volunteersHtml = '<div class="no-volunteers">🔍 Nog geen vrijwilligers</div>';
+                        }
+                        
+                        const statusClass = isAvailable ? '' : ' style="background: #fef2f2;"';
+                        const statusText = isAvailable ? `✅ ${available} vrij` : '❌ VOL';
+                        const statusColor = isAvailable ? '#16a34a' : '#ef4444';
+                        
+                        html += `
+                            <tr${statusClass}>
+                                <td class="time-slot" style="font-weight: 600;">${slot.startTime} - ${slot.endTime}</td>
+                                <td style="text-align: center; font-weight: 600;">${actualBooked}/${slot.capacity}</td>
+                                <td style="text-align: center; font-weight: bold; color: ${statusColor}; font-size: 9px;">${statusText}</td>
+                                <td style="line-height: 1.4;">${volunteersHtml}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                    </div>
+                `;
+            });
+            
+            // Add legend and footer
+            html += `
+                <div class="print-footer">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 10px;">
+                        <div><strong>Symbolen:</strong> ✅ = Beschikbaar | ❌ = Vol | 🔍 = Nog geen vrijwilligers</div>
+                        <div><strong>Totaal:</strong> ${totalActualBooked}/${totalCapacity} vrijwilligers (${fillRate}% bezet)</div>
+                    </div>
+                    <p style="text-align: center; font-weight: bold;">📋 Gebruik deze planning om vrijwilligers in te delen tijdens het evenement</p>
+                    <p style="text-align: center; font-size: 8px; color: #666;">Voor wijzigingen: ga naar de online planning • Halloween 2025 - De Puzzel</p>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Evaluation Question Management
+        let currentEditingQuestion = null;
+        
+        function openAddEvaluationQuestionModal() {
+            currentEditingQuestion = null;
+            document.getElementById('evaluationQuestionModalTitle').textContent = '➕ Nieuwe Evaluatievraag Toevoegen';
+            document.getElementById('evaluationQuestionForm').reset();
+            document.getElementById('questionOrder').value = evaluationQuestions.length + 1;
+            updateQuestionForm();
+            openModal('evaluationQuestionModal');
+        }
+        
+        function editEvaluationQuestion(questionId) {
+            const question = evaluationQuestions.find(q => q.id === questionId);
+            if (!question) return;
+            
+            currentEditingQuestion = question;
+            document.getElementById('evaluationQuestionModalTitle').textContent = '✏️ Evaluatievraag Bewerken';
+            
+            // Fill form with current values
+            document.getElementById('questionType').value = question.type;
+            document.getElementById('questionLabel').value = question.label;
+            document.getElementById('questionFieldName').value = question.fieldName;
+            document.getElementById('questionPlaceholder').value = question.placeholder || '';
+            document.getElementById('questionOrder').value = question.order;
+            document.getElementById('questionRequired').checked = question.required;
+            
+            if (question.type === 'select' && question.options) {
+                if (typeof question.options === 'string') {
+                    document.getElementById('questionOptions').value = question.options;
+                } else {
+                    document.getElementById('questionOptions').value = JSON.stringify(question.options, null, 2);
+                }
+            }
+            
+            if (question.type === 'rating') {
+                document.getElementById('questionMin').value = question.min || 1;
+                document.getElementById('questionMax').value = question.max || 5;
+            }
+            
+            updateQuestionForm();
+            openModal('evaluationQuestionModal');
+        }
+        
+        function updateQuestionForm() {
+            const type = document.getElementById('questionType').value;
+            
+            // Hide all conditional groups
+            document.getElementById('questionPlaceholderGroup').style.display = 'block';
+            document.getElementById('questionOptionsGroup').style.display = 'none';
+            document.getElementById('questionRatingGroup').style.display = 'none';
+            
+            // Show relevant groups based on type
+            if (type === 'select') {
+                document.getElementById('questionOptionsGroup').style.display = 'block';
+                document.getElementById('questionPlaceholderGroup').style.display = 'none';
+            } else if (type === 'rating') {
+                document.getElementById('questionRatingGroup').style.display = 'block';
+                document.getElementById('questionPlaceholderGroup').style.display = 'none';
+            }
+        }
+        
+        async function deleteEvaluationQuestion(questionId) {
+            const question = evaluationQuestions.find(q => q.id === questionId);
+            if (!question) return;
+            
+            if (!confirm(`Weet je zeker dat je de vraag "${question.label}" wilt verwijderen?`)) {
+                return;
+            }
+            
+            try {
+                // Delete from Firebase
+                if (question.firebaseId) {
+                    await window.deleteDoc(window.doc(window.db, 'evaluationQuestions', question.firebaseId));
+                }
+                
+                // Remove from local array
+                evaluationQuestions = evaluationQuestions.filter(q => q.id !== questionId);
+                
+                showSuccess('Evaluatievraag succesvol verwijderd');
+                
+                // Refresh UI
+                showAdminSection('evaluation-form');
+                
+            } catch (error) {
+                console.error('Error deleting evaluation question:', error);
+                showError('Fout bij het verwijderen van de vraag');
+            }
+        }
+        
+        async function handleEvaluationQuestionSubmit(e) {
+            e.preventDefault();
+            
+            const type = document.getElementById('questionType').value;
+            const label = document.getElementById('questionLabel').value.trim();
+            const fieldName = document.getElementById('questionFieldName').value.trim();
+            const placeholder = document.getElementById('questionPlaceholder').value.trim();
+            const order = parseInt(document.getElementById('questionOrder').value);
+            const required = document.getElementById('questionRequired').checked;
+            
+            if (!type || !label || !fieldName) {
+                showError('Vul alle verplichte velden in');
+                return;
+            }
+            
+            // Validate field name (only letters, numbers, underscores)
+            if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(fieldName)) {
+                showError('Veldnaam mag alleen letters, cijfers en underscores bevatten en moet beginnen met een letter');
+                return;
+            }
+            
+            // Check for duplicate field names (excluding current question when editing)
+            const existingQuestion = evaluationQuestions.find(q => 
+                q.fieldName === fieldName && 
+                (!currentEditingQuestion || q.id !== currentEditingQuestion.id)
+            );
+            
+            if (existingQuestion) {
+                showError('Er bestaat al een vraag met deze veldnaam');
+                return;
+            }
+            
+            try {
+                const questionData = {
+                    type,
+                    label,
+                    fieldName,
+                    required,
+                    order
+                };
+                
+                // Add type-specific fields
+                if (placeholder) {
+                    questionData.placeholder = placeholder;
+                }
+                
+                if (type === 'select') {
+                    const optionsValue = document.getElementById('questionOptions').value.trim();
+                    if (optionsValue === 'functions') {
+                        questionData.options = 'functions';
+                    } else if (optionsValue) {
+                        try {
+                            questionData.options = JSON.parse(optionsValue);
+                        } catch (error) {
+                            showError('Ongeldige JSON in opties veld');
+                            return;
+                        }
+                    }
+                }
+                
+                if (type === 'rating') {
+                    questionData.min = parseInt(document.getElementById('questionMin').value);
+                    questionData.max = parseInt(document.getElementById('questionMax').value);
+                    
+                    if (questionData.min >= questionData.max) {
+                        showError('Min waarde moet kleiner zijn dan max waarde');
+                        return;
+                    }
+                }
+                
+                if (currentEditingQuestion) {
+                    // Update existing question
+                    if (currentEditingQuestion.firebaseId) {
+                        const questionRef = window.doc(window.db, 'evaluationQuestions', currentEditingQuestion.firebaseId);
+                        await window.updateDoc(questionRef, questionData);
+                    }
+                    
+                    // Update local data
+                    const index = evaluationQuestions.findIndex(q => q.id === currentEditingQuestion.id);
+                    if (index !== -1) {
+                        evaluationQuestions[index] = { ...evaluationQuestions[index], ...questionData };
+                    }
+                    
+                    showSuccess('Evaluatievraag succesvol bijgewerkt');
+                    
+                } else {
+                    // Add new question
+                    questionData.id = generateId();
+                    
+                    // Save to Firebase
+                    const docRef = await window.addDoc(window.collection(window.db, 'evaluationQuestions'), questionData);
+                    questionData.firebaseId = docRef.id;
+                    
+                    // Add to local array
+                    evaluationQuestions.push(questionData);
+                    
+                    showSuccess('Evaluatievraag succesvol toegevoegd');
+                }
+                
+                // Sort questions by order
+                evaluationQuestions.sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                // Refresh UI
+                closeModal('evaluationQuestionModal');
+                showAdminSection('evaluation-form');
+                
+                // Also refresh the evaluation tab if it uses dynamic questions
+                updateEvaluationTab();
+                
+            } catch (error) {
+                console.error('Error saving evaluation question:', error);
+                showError('Fout bij het opslaan van de vraag');
+            }
+        }
+        
+        function renderEvaluationFormPreview() {
+            if (evaluationQuestions.length === 0) {
+                return '<p style="color: #6b7280; font-style: italic;">Nog geen vragen toegevoegd</p>';
+            }
+            
+            let html = '<div style="max-width: 500px;">';
+            
+            evaluationQuestions.forEach(question => {
+                html += `
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color);">
+                            ${question.label}${question.required ? ' *' : ''}
+                        </label>
+                `;
+                
+                switch (question.type) {
+                    case 'text':
+                        html += `<input type="text" style="width: 100%; padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px;" placeholder="${question.placeholder || ''}" disabled>`;
+                        break;
+                    case 'textarea':
+                        html += `<textarea style="width: 100%; min-height: 80px; padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; resize: vertical;" placeholder="${question.placeholder || ''}" disabled></textarea>`;
+                        break;
+                    case 'select':
+                        html += '<select style="width: 100%; padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px;" disabled>';
+                        if (question.options === 'functions') {
+                            html += '<option>Kies een functie...</option>';
+                            functions.forEach(func => {
+                                html += `<option>${func.name}</option>`;
+                            });
+                        } else if (Array.isArray(question.options)) {
+                            question.options.forEach(option => {
+                                html += `<option value="${option.value}">${option.label}</option>`;
+                            });
+                        }
+                        html += '</select>';
+                        break;
+                    case 'rating':
+                        html += '<div style="display: flex; gap: 8px; justify-content: center; margin: 10px 0;">';
+                        for (let i = question.min || 1; i <= (question.max || 5); i++) {
+                            html += `<span style="font-size: 1.5rem; color: #d1d5db;">⭐</span>`;
+                        }
+                        html += '</div>';
+                        break;
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            return html;
+        }
+        
+        function updateEvaluationTab() {
+            // This function will be called to refresh the evaluation form
+            // We'll implement the dynamic form generation later
+            console.log('Updating evaluation tab with new questions');
+        }
+
+        // Clear All Data Function
+        async function clearAllData() {
+            if (!confirm('WAARSCHUWING: Wil je ALLE data uit Firebase verwijderen?\n\nDit verwijdert:\n- Alle functies\n- Alle tijdsloten\n- Alle boekingen\n- Alle evaluaties\n\nDit kan NIET ongedaan gemaakt worden!')) {
+                return;
+            }
+            
+            if (!confirm('Ben je hier echt zeker van? Dit zal alle data permanent verwijderen!')) {
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                // Delete all collections
+                const collections = ['functions', 'timeSlots', 'bookings', 'evaluations', 'evaluationQuestions'];
+                let totalDeleted = 0;
+                
+                for (const collectionName of collections) {
+                    const snapshot = await window.getDocs(window.collection(window.db, collectionName));
+                    
+                    for (const doc of snapshot.docs) {
+                        await window.deleteDoc(window.doc(window.db, collectionName, doc.id));
+                        totalDeleted++;
+                    }
+                }
+                
+                // Clear local arrays
+                functions.length = 0;
+                timeSlots.length = 0;
+                bookings.length = 0;
+                evaluations.length = 0;
+                evaluationQuestions.length = 0;
+                
+                showLoading(false);
+                showSuccess(`✅ ${totalDeleted} documenten verwijderd uit Firebase`);
+                
+                // Refresh UI
+                initializeUI();
+                showAdminSection('overview');
+                
+            } catch (error) {
+                showLoading(false);
+                console.error('❌ Error clearing data:', error);
+                showError('Fout bij het wissen van data: ' + error.message);
+            }
         }
 
         // Close modal on escape key
