@@ -101,48 +101,17 @@
             box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
-            height: 300px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .header-banner {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('Halloween_banner.jpg');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            opacity: 1;
-            z-index: 1;
-        }
-
-        .header-content {
-            position: relative;
-            z-index: 2;
-            display: none;
-        }
-
-        .header h1 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            color: var(--text-light);
-            font-weight: 500;
-        }
-
-        .header-logo {
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: var(--border-radius);
         }
 
         .nav-tabs {
@@ -346,7 +315,6 @@
             }
             
             .header {
-                height: 150px;
                 margin-bottom: 20px;
             }
             
@@ -376,10 +344,6 @@
                 padding: 15px;
             }
             
-            .header {
-                height: 180px;
-            }
-            
             .nav-tabs {
                 flex-wrap: wrap;
                 gap: 5px;
@@ -397,12 +361,6 @@
             .modal-content {
                 padding: 25px;
                 margin: 20px;
-            }
-        }
-        
-        @media (min-width: 1200px) {
-            .header {
-                height: 350px;
             }
         }
 
@@ -673,14 +631,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <div class="header-banner"></div>
-            <div class="header-content">
-                <div class="logo-container" style="margin-bottom: 20px;">
-                    <img src="depuzzel_logo_groen.png" alt="De Puzzel Logo" class="header-logo" style="height: 80px; width: auto;">
-                </div>
-                <h1>🎃 Halloween 2025</h1>
-                <p>Vrijwilligersplanning De Puzzel</p>
-            </div>
+            <img src="Halloween_banner.jpg" alt="Halloween 2025 Banner" class="header-banner">
         </div>
 
         <!-- Navigation Tabs -->
@@ -701,19 +652,18 @@
             <!-- Volunteer Motivation Section -->
             <div id="motivationSection" class="priority-section">
                 <h2>🌟 Waarom Vrijwilliger Worden?</h2>
-                <p>Ontdek wat vrijwilligerswerk bij De Puzzel zo bijzonder maakt!</p>
                 <div id="motivationReasons" class="priority-functions">
                     <div class="priority-function">
-                        <h4>🏫 Bouw mee aan de school</h4>
-                        <p>Help mee om De Puzzel nog beter te maken voor alle leerlingen</p>
+                        <h4>💪 Bouw mee aan de school</h4>
+                        <p>Help mee om De Puzzel nog beter te maken voor alle leerlingen.</p>
                     </div>
                     <div class="priority-function">
-                        <h4>🍺 Gratis drankkaart</h4>
-                        <p>Geniet van gratis drankjes tijdens het evenement</p>
+                        <h4>🥂 Gratis drankkaart</h4>
+                        <p>Geniet van gratis drankjes tijdens het evenement.</p>
                     </div>
                     <div class="priority-function">
-                        <h4>👥 Maak nieuwe vrienden</h4>
-                        <p>Ontmoet andere enthousiaste vrijwilligers en bouw mooie vriendschappen</p>
+                        <h4>💚 Maak nieuwe vrienden</h4>
+                        <p>Leer andere (groot)ouders écht kennen.</p>
                     </div>
                 </div>
             </div>
@@ -3021,9 +2971,12 @@
         function showAdminEvaluationForm(container) {
             let html = `
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                         <h2>📝 Evaluatie Formulier Beheer (${evaluationQuestions.length})</h2>
-                        <button class="btn btn-primary" onclick="openAddEvaluationQuestionModal()">➕ Nieuwe Vraag</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="loadExampleEvaluationForm()">📚 Laad Voorbeeld Formulier</button>
+                            <button class="btn btn-primary" onclick="openAddEvaluationQuestionModal()">➕ Nieuwe Vraag</button>
+                        </div>
                     </div>
             `;
             
@@ -3822,7 +3775,175 @@
             return html;
         }
 
-        // Evaluation Question Management
+        // Load Example Evaluation Form
+        async function loadExampleEvaluationForm() {
+            if (evaluationQuestions.length > 0) {
+                if (!confirm('Er bestaan al evaluatievragen. Wil je deze vervangen door het voorbeeld formulier?\n\nDit zal alle huidige vragen verwijderen en vervangen door een standaard evaluatieformulier.')) {
+                    return;
+                }
+                
+                // Delete existing questions from Firebase
+                try {
+                    for (const question of evaluationQuestions) {
+                        if (question.firebaseId) {
+                            await window.deleteDoc(window.doc(window.db, 'evaluationQuestions', question.firebaseId));
+                        }
+                    }
+                    evaluationQuestions.length = 0; // Clear local array
+                } catch (error) {
+                    console.error('Error deleting existing questions:', error);
+                    showError('Fout bij het verwijderen van bestaande vragen');
+                    return;
+                }
+            }
+            
+            // Example evaluation form questions
+            const exampleQuestions = [
+                {
+                    id: generateId(),
+                    type: 'text',
+                    fieldName: 'volunteerName',
+                    label: 'Je naam (optioneel)',
+                    placeholder: 'Voornaam Achternaam',
+                    required: false,
+                    order: 1
+                },
+                {
+                    id: generateId(),
+                    type: 'select',
+                    fieldName: 'volunteerFunction',
+                    label: 'Voor welke functie was je vrijwilliger?',
+                    options: 'functions',
+                    required: true,
+                    order: 2
+                },
+                {
+                    id: generateId(),
+                    type: 'rating',
+                    fieldName: 'organizationRating',
+                    label: 'Hoe beoordeel je de algemene organisatie?',
+                    min: 1,
+                    max: 5,
+                    required: true,
+                    order: 3
+                },
+                {
+                    id: generateId(),
+                    type: 'rating',
+                    fieldName: 'communicationRating',
+                    label: 'Hoe beoordeel je de communicatie vooraf?',
+                    min: 1,
+                    max: 5,
+                    required: true,
+                    order: 4
+                },
+                {
+                    id: generateId(),
+                    type: 'rating',
+                    fieldName: 'supportRating',
+                    label: 'Hoe goed voelde je je ondersteund tijdens het evenement?',
+                    min: 1,
+                    max: 5,
+                    required: true,
+                    order: 5
+                },
+                {
+                    id: generateId(),
+                    type: 'textarea',
+                    fieldName: 'positiveAspects',
+                    label: 'Wat ging er goed? (positieve punten)',
+                    placeholder: 'Beschrijf wat je positief vond aan het evenement en de organisatie...',
+                    required: false,
+                    order: 6
+                },
+                {
+                    id: generateId(),
+                    type: 'textarea',
+                    fieldName: 'improvementSuggestions',
+                    label: 'Wat kan er beter? (verbeterpunten)',
+                    placeholder: 'Geef concrete suggesties voor verbetering...',
+                    required: false,
+                    order: 7
+                },
+                {
+                    id: generateId(),
+                    type: 'select',
+                    fieldName: 'volunteerAgainNextYear',
+                    label: 'Wil je volgend jaar weer vrijwilliger zijn?',
+                    options: [
+                        { value: '', label: 'Maak een keuze...' },
+                        { value: 'yes_definitely', label: 'Ja, zeker weten!' },
+                        { value: 'yes_probably', label: 'Ja, waarschijnlijk wel' },
+                        { value: 'maybe', label: 'Misschien, hangt ervan af' },
+                        { value: 'probably_not', label: 'Waarschijnlijk niet' },
+                        { value: 'no_definitely', label: 'Nee, zeker niet' }
+                    ],
+                    required: true,
+                    order: 8
+                },
+                {
+                    id: generateId(),
+                    type: 'select',
+                    fieldName: 'recommendToOthers',
+                    label: 'Zou je vrijwilligerswerk bij De Puzzel aanbevelen aan anderen?',
+                    options: [
+                        { value: '', label: 'Maak een keuze...' },
+                        { value: 'yes_enthusiastic', label: 'Ja, zeker aanbevelen!' },
+                        { value: 'yes_neutral', label: 'Ja, wel oké' },
+                        { value: 'neutral', label: 'Neutraal' },
+                        { value: 'probably_not', label: 'Waarschijnlijk niet' },
+                        { value: 'no', label: 'Nee' }
+                    ],
+                    required: true,
+                    order: 9
+                },
+                {
+                    id: generateId(),
+                    type: 'textarea',
+                    fieldName: 'additionalComments',
+                    label: 'Overige opmerkingen of suggesties',
+                    placeholder: 'Heb je nog andere opmerkingen, ideeën voor nieuwe activiteiten, of algemene feedback?',
+                    required: false,
+                    order: 10
+                },
+                {
+                    id: generateId(),
+                    type: 'select',
+                    fieldName: 'contactPermission',
+                    label: 'Mogen we je contacteren voor toekomstige vrijwilligersactiviteiten?',
+                    options: [
+                        { value: '', label: 'Maak een keuze...' },
+                        { value: 'yes_all', label: 'Ja, voor alle activiteiten' },
+                        { value: 'yes_similar', label: 'Ja, maar alleen voor soortgelijke evenementen' },
+                        { value: 'no', label: 'Nee, geen contact' }
+                    ],
+                    required: false,
+                    order: 11
+                }
+            ];
+            
+            try {
+                // Save example questions to Firebase
+                for (const question of exampleQuestions) {
+                    const docRef = await window.addDoc(window.collection(window.db, 'evaluationQuestions'), question);
+                    question.firebaseId = docRef.id;
+                    evaluationQuestions.push(question);
+                }
+                
+                // Sort questions by order
+                evaluationQuestions.sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                showSuccess(`✅ Voorbeeld evaluatieformulier geladen met ${exampleQuestions.length} vragen!`);
+                
+                // Refresh UI
+                showAdminSection('evaluation-form');
+                updateEvaluationTab();
+                
+            } catch (error) {
+                console.error('Error loading example form:', error);
+                showError('Fout bij het laden van het voorbeeld formulier');
+            }
+        }
         let currentEditingQuestion = null;
         
         function openAddEvaluationQuestionModal() {
