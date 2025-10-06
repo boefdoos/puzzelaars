@@ -623,7 +623,7 @@
         
         @page {
             size: A4 landscape;
-            margin: 1cm;
+            margin: 2cm 2.5cm;
         }
         
         /* Footer Styles */
@@ -1853,9 +1853,35 @@
             
             if (!currentBookingSlot) return;
             
+            // Get submit button and disable it immediately
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '⏳ Bezig met boeken...';
+            submitButton.style.opacity = '0.6';
+            submitButton.style.cursor = 'not-allowed';
+            
+            const email = document.getElementById('bookingEmail').value;
+            
+            // Check if user already has a booking for this exact timeslot
+            const existingBooking = bookings.find(b => 
+                b.email === email && 
+                b.slotId === currentBookingSlot.id
+            );
+            
+            if (existingBooking) {
+                showError('Je hebt dit tijdslot al geboekt. Controleer je bevestigingsmail of kies een ander tijdslot.');
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
+                return;
+            }
+            
             const formData = {
                 name: document.getElementById('bookingName').value,
-                email: document.getElementById('bookingEmail').value,
+                email: email,
                 phone: document.getElementById('bookingPhone').value || null,
                 slotId: currentBookingSlot.id,
                 functionId: currentBookingSlot.functionId,
@@ -1934,9 +1960,21 @@
                 showBookingSuccess(formData);
                 renderSchedule();
                 
+                // Re-enable button (for next booking)
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
+                
             } catch (error) {
                 console.error('❌ Error saving booking:', error);
                 showError('Fout bij het opslaan van de boeking');
+                
+                // Re-enable button on error
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
             }
         }
 
@@ -2112,6 +2150,222 @@
             if (document.getElementById('evaluationTab').classList.contains('active')) {
                 checkEvaluationAvailability();
             }
+        }
+
+        // Export Schedule to Print with chronological sorting
+        function exportScheduleToPrint() {
+            // Create a print window with sorted data
+            const printWindow = window.open('', '_blank');
+            
+            // Sort timeslots chronologically: first by date, then by time
+            const sortedSlots = [...timeSlots].sort((a, b) => {
+                // First sort by date
+                if (a.date !== b.date) {
+                    return a.date.localeCompare(b.date);
+                }
+                // Then sort by start time
+                return a.startTime.localeCompare(b.startTime);
+            });
+            
+            // Group slots by date for organized display
+            const slotsByDate = {};
+            sortedSlots.forEach(slot => {
+                if (!slotsByDate[slot.date]) {
+                    slotsByDate[slot.date] = [];
+                }
+                slotsByDate[slot.date].push(slot);
+            });
+            
+            // Generate HTML for print
+            let html = `
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloween 2025 - Vrijwilligersplanning</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 2cm 2.5cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #1f2937;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #16a34a;
+        }
+        
+        .print-header h1 {
+            color: #16a34a;
+            font-size: 28pt;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+        
+        .print-header p {
+            color: #6b7280;
+            font-size: 12pt;
+        }
+        
+        .print-date-section {
+            page-break-inside: avoid;
+            margin-bottom: 30px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .print-date-header {
+            background: #16a34a;
+            color: white;
+            padding: 12px 15px;
+            font-size: 14pt;
+            font-weight: bold;
+        }
+        
+        .print-timeslots {
+            padding: 15px;
+        }
+        
+        .print-timeslot {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .print-timeslot:last-child {
+            margin-bottom: 0;
+        }
+        
+        .print-slot-info {
+            flex: 1;
+        }
+        
+        .print-function-name {
+            font-weight: bold;
+            color: #16a34a;
+            font-size: 12pt;
+            margin-bottom: 4px;
+        }
+        
+        .print-time {
+            font-weight: 600;
+            color: #374151;
+            font-size: 11pt;
+        }
+        
+        .print-capacity {
+            color: #6b7280;
+            font-size: 10pt;
+            text-align: right;
+            padding-left: 15px;
+        }
+        
+        .print-capacity-label {
+            display: block;
+            font-size: 9pt;
+            color: #9ca3af;
+        }
+        
+        .print-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 9pt;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>🎃 Halloween 2025</h1>
+        <p>Vrijwilligersplanning - De Puzzel</p>
+    </div>
+`;
+            
+            // Add date sections in chronological order
+            Object.keys(slotsByDate).sort().forEach(date => {
+                const dateSlots = slotsByDate[date];
+                
+                html += `
+    <div class="print-date-section">
+        <div class="print-date-header">📅 ${formatDate(date)}</div>
+        <div class="print-timeslots">
+`;
+                
+                // Slots are already sorted by time within each date
+                dateSlots.forEach(slot => {
+                    const func = functions.find(f => f.id === slot.functionId);
+                    const available = slot.capacity - slot.booked;
+                    const funcName = func ? func.name : 'Onbekende functie';
+                    
+                    html += `
+            <div class="print-timeslot">
+                <div class="print-slot-info">
+                    <div class="print-function-name">${funcName}</div>
+                    <div class="print-time">🕐 ${slot.startTime} - ${slot.endTime}</div>
+                </div>
+                <div class="print-capacity">
+                    <strong>${slot.booked}/${slot.capacity}</strong> geboekt<br>
+                    <span class="print-capacity-label">${available} beschikbaar</span>
+                </div>
+            </div>
+`;
+                });
+                
+                html += `
+        </div>
+    </div>
+`;
+            });
+            
+            // Add footer
+            const printDate = new Date().toLocaleDateString('nl-NL', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            html += `
+    <div class="print-footer">
+        <p>Afgedrukt op ${printDate}</p>
+    </div>
+</body>
+</html>
+`;
+            
+            // Write to print window and trigger print
+            printWindow.document.write(html);
+            printWindow.document.close();
+            
+            // Wait for content to load before printing
+            printWindow.onload = function() {
+                printWindow.print();
+            };
         }
 
         async function handleEvaluationSubmit(e) {
