@@ -519,21 +519,49 @@
 
         .rating-stars {
             display: flex;
-            gap: 8px;
+            gap: 12px;
             justify-content: center;
             margin: 10px 0;
+            padding: 10px;
         }
 
         .star {
-            font-size: 2rem;
+            font-size: 2.5rem;
             color: #d1d5db;
             cursor: pointer;
             transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            padding: 5px;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
         }
 
-        .star.active,
-        .star:hover {
+        .star.active {
             color: #fbbf24;
+            transform: scale(1.1);
+        }
+
+        @media (hover: hover) {
+            .star:hover {
+                color: #fbbf24;
+                transform: scale(1.15);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .star {
+                font-size: 3rem;
+                gap: 15px;
+                min-width: 50px;
+                min-height: 50px;
+            }
         }
 
         .textarea {
@@ -699,7 +727,7 @@
                         <p>Help mee om De Puzzel nog beter te maken voor alle leerlingen.</p>
                     </div>
                     <div class="priority-function">
-                        <h4>🥂 Gratis drankjetons</h4>
+                        <h4>🥂 Gratis drankkaart</h4>
                         <p>Geniet van gratis drankjes tijdens het evenement.</p>
                     </div>
                     <div class="priority-function">
@@ -2116,24 +2144,44 @@
         
         function setupRatingStarsForField(fieldName, min, max) {
             const stars = document.querySelectorAll(`#${fieldName}Rating .star`);
+            const container = document.getElementById(`${fieldName}Rating`);
             let selectedRating = 0;
 
             stars.forEach((star, index) => {
                 const rating = parseInt(star.dataset.rating);
                 
-                star.addEventListener('click', () => {
+                // Click event for desktop
+                star.addEventListener('click', (e) => {
+                    e.preventDefault();
                     selectedRating = rating;
                     updateFieldStars(fieldName, selectedRating, min, max);
                 });
 
+                // Touch events for mobile
+                star.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    selectedRating = rating;
+                    updateFieldStars(fieldName, selectedRating, min, max);
+                });
+
+                star.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                });
+
+                // Hover effect for desktop only (not on touch devices)
                 star.addEventListener('mouseover', () => {
-                    updateFieldStars(fieldName, rating, min, max);
+                    if (!('ontouchstart' in window)) {
+                        updateFieldStars(fieldName, rating, min, max);
+                    }
                 });
             });
 
-            document.getElementById(`${fieldName}Rating`).addEventListener('mouseleave', () => {
-                updateFieldStars(fieldName, selectedRating, min, max);
-            });
+            // Mouse leave event for desktop only
+            if (container && !('ontouchstart' in window)) {
+                container.addEventListener('mouseleave', () => {
+                    updateFieldStars(fieldName, selectedRating, min, max);
+                });
+            }
 
             function updateFieldStars(fieldName, rating, min, max) {
                 const fieldStars = document.querySelectorAll(`#${fieldName}Rating .star`);
@@ -2141,7 +2189,10 @@
                     const starRating = parseInt(star.dataset.rating);
                     star.classList.toggle('active', starRating <= rating);
                 });
-                document.getElementById(`${fieldName}Rating`).dataset.rating = rating;
+                const ratingContainer = document.getElementById(`${fieldName}Rating`);
+                if (ratingContainer) {
+                    ratingContainer.dataset.rating = rating;
+                }
             }
         }
         
