@@ -3302,30 +3302,158 @@
                     </div>
                 `;
             } else {
-                const avgRating = evaluations.reduce((sum, eval) => sum + eval.organizationRating, 0) / evaluations.length;
-                const volunteerAgainCount = evaluations.filter(eval => eval.volunteerAgain === 'yes').length;
-                const volunteerAgainPercentage = (volunteerAgainCount / evaluations.length * 100).toFixed(1);
+                // Calculate all statistics from evaluation questions dynamically
+                const stats = {};
                 
-                html += `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
-                        <div class="stat-card">
-                            <div class="stat-number">${avgRating.toFixed(1)}/5</div>
-                            <div class="stat-label">⭐ Gemiddelde Beoordeling</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${volunteerAgainPercentage}%</div>
-                            <div class="stat-label">✅ Wil Opnieuw Vrijwilliger Zijn</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${evaluations.length}</div>
-                            <div class="stat-label">📝 Totaal Evaluaties</div>
-                        </div>
-                    </div>
+                // Process each evaluation question for statistics
+                evaluationQuestions.forEach(question => {
+                    const fieldName = question.fieldName;
                     
-                    <button class="btn btn-primary" onclick="exportEvaluationsReport()" style="margin-bottom: 20px;">
-                        📊 Export Evaluatie Rapport
-                    </button>
+                    if (question.type === 'rating') {
+                        // Calculate average rating
+                        const ratings = evaluations
+                            .map(e => parseInt(e[fieldName]))
+                            .filter(r => !isNaN(r) && r > 0);
+                        
+                        if (ratings.length > 0) {
+                            const avgRating = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+                            const minRating = question.min || 1;
+                            const maxRating = question.max || 5;
+                            stats[fieldName] = {
+                                label: question.label,
+                                avg: avgRating.toFixed(1),
+                                max: maxRating,
+                                count: ratings.length
+                            };
+                        }
+                    } else if (question.type === 'select' && question.fieldName === 'evalVolunteerAgain') {
+                        // Calculate volunteer again percentage
+                        const responses = evaluations.map(e => e[fieldName]).filter(r => r);
+                        const yesCount = responses.filter(r => r === 'yes').length;
+                        const maybeCount = responses.filter(r => r === 'maybe').length;
+                        const noCount = responses.filter(r => r === 'no').length;
+                        
+                        stats[fieldName] = {
+                            label: question.label,
+                            yes: yesCount,
+                            yesPercentage: responses.length > 0 ? ((yesCount / responses.length) * 100).toFixed(1) : 0,
+                            maybe: maybeCount,
+                            maybePercentage: responses.length > 0 ? ((maybeCount / responses.length) * 100).toFixed(1) : 0,
+                            no: noCount,
+                            noPercentage: responses.length > 0 ? ((noCount / responses.length) * 100).toFixed(1) : 0,
+                            total: responses.length
+                        };
+                    }
+                });
+                
+                // Show statistics cards
+                html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">';
+                
+                // Add stat cards dynamically based on calculated stats
+                Object.keys(stats).forEach(fieldName => {
+                    const stat = stats[fieldName];
+                    
+                    if (stat.avg !== undefined) {
+                        // Rating stat card
+                        html += `
+                            <div class="stat-card">
+                                <div class="stat-number">${stat.avg}/${stat.max}</div>
+                                <div class="stat-label">⭐ ${stat.label.replace('?', '').replace(/\(.*\)/, '').trim()}</div>
+                                <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px;">${stat.count} beoordelingen</div>
+                            </div>
+                        `;
+                    } else if (stat.yesPercentage !== undefined) {
+                        // Volunteer again stat card
+                        html += `
+                            <div class="stat-card">
+                                <div class="stat-number">${stat.yesPercentage}%</div>
+                                <div class="stat-label">✅ Wil Opnieuw Vrijwilliger Zijn</div>
+                                <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px;">${stat.yes} van ${stat.total}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                // Add total evaluations card
+                html += `
+                    <div class="stat-card">
+                        <div class="stat-number">${evaluations.length}</div>
+                        <div class="stat-label">📝 Totaal Evaluaties</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="exportEvaluationsReport()" style="margin-bottom: 20px;">
+                    📊 Export Evaluatie Rapport
+                </button>
+                
+                <!-- Detailed Responses Section -->
+                <h3 style="margin: 30px 0 20px 0; color: var(--primary-color);">📋 Gedetailleerde Antwoorden</h3>
                 `;
+                
+                // Show individual evaluations with all their answers
+                evaluations.forEach((evaluation, index) => {
+                    const func = functions.find(f => f.id === evaluation.evalFunction);
+                    const funcName = func ? func.name : 'Onbekend';
+                    
+                    html += `
+                        <div style="background: #f8fafc; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                <div>
+                                    <h4 style="color: var(--primary-color); margin-bottom: 5px;">Evaluatie #${index + 1}</h4>
+                                    <div style="font-size: 0.9rem; color: #6b7280;">
+                                        ${evaluation.evalName ? `<strong>Naam:</strong> ${evaluation.evalName}<br>` : ''}
+                                        <strong>Functie:</strong> ${funcName}<br>
+                                        <strong>Datum:</strong> ${evaluation.submittedDate}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; gap: 15px; margin-top: 20px;">
+                    `;
+                    
+                    // Show all question responses
+                    evaluationQuestions.forEach(question => {
+                        const fieldName = question.fieldName;
+                        const value = evaluation[fieldName];
+                        
+                        // Skip if no value
+                        if (!value && value !== 0) return;
+                        
+                        html += '<div style="border-left: 3px solid var(--primary-color); padding-left: 15px;">';
+                        html += `<div style="font-weight: 600; color: var(--text-color); margin-bottom: 5px;">${question.label}</div>`;
+                        
+                        // Format value based on question type
+                        if (question.type === 'rating') {
+                            const stars = '⭐'.repeat(parseInt(value));
+                            html += `<div style="color: #fbbf24; font-size: 1.2rem;">${stars} (${value}/${question.max || 5})</div>`;
+                        } else if (question.type === 'select' && question.fieldName === 'evalVolunteerAgain') {
+                            const labels = { 'yes': 'Ja, zeker!', 'maybe': 'Misschien', 'no': 'Nee' };
+                            const colors = { 'yes': '#10b981', 'maybe': '#f59e0b', 'no': '#ef4444' };
+                            html += `<div style="color: ${colors[value] || '#6b7280'}; font-weight: 600;">${labels[value] || value}</div>`;
+                        } else if (question.type === 'select') {
+                            // For function select, show function name
+                            if (fieldName === 'evalFunction' || question.options === 'functions') {
+                                const func = functions.find(f => f.id === value);
+                                html += `<div style="color: #6b7280;">${func ? func.name : value}</div>`;
+                            } else if (Array.isArray(question.options)) {
+                                // For other dropdowns, show the label instead of value
+                                const option = question.options.find(opt => opt.value === value);
+                                html += `<div style="color: #6b7280;">${option ? option.label : value}</div>`;
+                            } else {
+                                html += `<div style="color: #6b7280;">${value}</div>`;
+                            }
+                        } else {
+                            html += `<div style="color: #6b7280; white-space: pre-wrap;">${value}</div>`;
+                        }
+                        
+                        html += '</div>';
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
             }
             
             html += '</div>';
