@@ -734,13 +734,15 @@
         <!-- Portal: Event Selection Screen -->
         <div id="portalScreen" style="display:none;">
             <div class="card" style="text-align: center; padding: 40px 30px; margin-bottom: 24px;">
-                <img src="depuzzel_logo_groen.png" alt="De Puzzel" style="height: 60px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
                 <h2 style="font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin-bottom: 10px;">Welkom bij de Vrijwilligersplanning</h2>
                 <p style="color: var(--text-light); margin-bottom: 35px; max-width: 500px; margin-left: auto; margin-right: auto;">Kies een evenement waarvoor je je wil inschrijven als vrijwilliger.</p>
                 <div id="eventCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; text-align: left;"></div>
                 <div id="noEventsMessage" style="display: none; padding: 40px; color: var(--text-light);">
                     <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
                     <p>Er zijn momenteel geen actieve evenementen.</p>
+                </div>
+                <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+                    <button onclick="showPortalAdmin()" style="background: none; border: none; color: var(--text-light); font-size: 0.85rem; cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">🔧 Beheerder? Klik hier</button>
                 </div>
             </div>
         </div>
@@ -3095,6 +3097,22 @@
         }
 
         function returnToPortal() { showPortal(); }
+
+        function showPortalAdmin() {
+            // Toon admin tab direct vanuit portaal
+            document.getElementById('portalScreen').style.display = 'none';
+            document.getElementById('mainNavTabs').style.display = 'flex';
+            document.getElementById('adminTab').classList.add('active');
+            document.getElementById('clientTab').classList.remove('active');
+            document.getElementById('evaluationTab').classList.remove('active');
+            // Toon terug-knop
+            document.getElementById('eventBreadcrumb').style.display = 'block';
+            document.getElementById('eventBreadcrumbName').textContent = 'Beheerpaneel';
+            // Highlight admin tab button
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const adminBtn = document.querySelector('.tab-btn[onclick*="admin"]');
+            if (adminBtn) adminBtn.classList.add('active');
+        }
 
         // Render event cards on portal
         function renderEventCards() {
