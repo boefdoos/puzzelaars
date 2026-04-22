@@ -16,7 +16,7 @@
     <!-- Firebase v9 SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -44,6 +44,7 @@
         window.onSnapshot = onSnapshot;
         window.query = query;
         window.orderBy = orderBy;
+        window.where = where;
 
         console.log('✅ Firebase initialized successfully');
 
@@ -718,11 +719,34 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="Halloween_banner.jpg" alt="Halloween 2025 Banner" class="header-banner">
+            <div id="eventBreadcrumb" style="display:none; margin-bottom: 12px;">
+                <button onclick="returnToPortal()" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(22,163,74,0.08)'" onmouseout="this.style.background='none'">← Terug naar evenementen</button>
+                <span id="eventBreadcrumbName" style="color: var(--text-light); font-size: 0.9rem; margin-left: 8px;"></span>
+            </div>
+            <img id="headerBanner" src="depuzzel_logo_groen.png" alt="De Puzzel" style="height: 80px; object-fit: contain; display: block; margin: 0 auto;">
+            <div id="eventHeaderInfo" style="display:none; margin-top: 15px;">
+                <h2 id="eventHeaderTitle" style="font-family: 'Poppins', sans-serif; font-size: 1.6rem; font-weight: 700;"></h2>
+                <p id="eventHeaderDates" style="color: var(--text-light); font-size: 0.95rem; margin-top: 4px;"></p>
+            </div>
+        </div>
+
+
+        <!-- Portal: Event Selection Screen -->
+        <div id="portalScreen" style="display:none;">
+            <div class="card" style="text-align: center; padding: 40px 30px; margin-bottom: 24px;">
+                <img src="depuzzel_logo_groen.png" alt="De Puzzel" style="height: 60px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+                <h2 style="font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin-bottom: 10px;">Welkom bij de Vrijwilligersplanning</h2>
+                <p style="color: var(--text-light); margin-bottom: 35px; max-width: 500px; margin-left: auto; margin-right: auto;">Kies een evenement waarvoor je je wil inschrijven als vrijwilliger.</p>
+                <div id="eventCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; text-align: left;"></div>
+                <div id="noEventsMessage" style="display: none; padding: 40px; color: var(--text-light);">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+                    <p>Er zijn momenteel geen actieve evenementen.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="nav-tabs">
+        <div class="nav-tabs" id="mainNavTabs" style="display:none;">
             <button class="tab-btn active" onclick="showTab('client')">📅 Boeken</button>
             <button class="tab-btn" onclick="showTab('evaluation')">⭐ Evaluatie</button>
             <button class="tab-btn" onclick="showTab('admin')">🔧 Admin</button>
@@ -735,7 +759,7 @@
         </div>
 
         <!-- Client Tab - Booking Section -->
-        <div id="clientTab" class="tab-content active">
+        <div id="clientTab" class="tab-content">
             <!-- Volunteer Motivation Section -->
             <div id="motivationSection" class="priority-section">
                 <h2>🌟 Waarom Vrijwilliger Worden?</h2>
@@ -758,7 +782,7 @@
             <!-- Schedule Section -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                    <h3>🗓️ Halloween Planning Rooster</h3>
+                    <h3 id="scheduleTitle">🗓️ Planning Rooster</h3>
                     <button class="btn btn-primary" onclick="exportScheduleToPrint()">🖨️ Print Planning</button>
                 </div>
 
@@ -778,8 +802,8 @@
         <!-- Evaluation Tab -->
         <div id="evaluationTab" class="tab-content">
             <div class="card">
-                <h2>⭐ Halloween 2025 Evaluatie</h2>
-                <p>Vanaf 18 oktober kun je hier je ervaringen delen als vrijwilliger.</p>
+                <h2 id="evaluationTabTitle">⭐ Evaluatie</h2>
+                <p>Vanaf <span id="evaluationOpenDate">het evenement</span> kun je hier je ervaringen delen als vrijwilliger.</p>
                 
                 <div id="evaluationForm" style="display: none;">
                     <form id="evalForm">
@@ -789,7 +813,7 @@
 
                 <div id="evaluationClosed" style="text-align: center; padding: 40px;">
                     <h3>📅 Evaluatie nog niet beschikbaar</h3>
-                    <p>Je kunt de evaluatie invullen vanaf 18 oktober 2025, na het Halloween evenement.</p>
+                    <p>Je kunt de evaluatie invullen na het evenement.</p>
                 </div>
             </div>
         </div>
@@ -812,6 +836,7 @@
             <div id="adminPanel" style="display: none;">
                 <!-- Admin Navigation -->
                 <div class="admin-nav">
+                    <button class="btn btn-secondary" onclick="showAdminSection('events')">📋 Evenementen</button>
                     <button class="btn btn-primary" onclick="showAdminSection('overview')">📊 Overzicht</button>
                     <button class="btn btn-secondary" onclick="showAdminSection('bookings')">👥 Boekingen</button>
                     <button class="btn btn-secondary" onclick="showAdminSection('functions')">🎯 Functies</button>
@@ -824,6 +849,65 @@
                 <!-- Admin Content -->
                 <div id="adminContent"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3 id="eventModalTitle">Nieuw Evenement</h3>
+            </div>
+            <form id="eventForm" onsubmit="handleEventFormSubmit(event)">
+                <input type="hidden" id="editingEventId">
+                <div class="form-group">
+                    <label class="form-label">Naam *</label>
+                    <input type="text" id="eventName" class="form-input" required placeholder="bv. Halloween 2026">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Beschrijving</label>
+                    <input type="text" id="eventDescription" class="form-input" placeholder="Korte beschrijving">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Icoon</label>
+                        <input type="text" id="eventIcon" class="form-input" placeholder="🎃" style="font-size: 1.4rem;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kleur</label>
+                        <input type="color" id="eventColor" class="form-input" value="#16a34a" style="padding: 6px; height: 46px;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Startdatum</label>
+                        <input type="date" id="eventStartDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Einddatum</label>
+                        <input type="date" id="eventEndDate" class="form-input">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="eventStatus" class="form-input">
+                            <option value="upcoming">🔵 Binnenkort</option>
+                            <option value="open">🟢 Open</option>
+                            <option value="closed">🔴 Gesloten</option>
+                            <option value="archived">⚫ Gearchiveerd</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Evaluatie open vanaf</label>
+                        <input type="date" id="eventEvalDate" class="form-input">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">✅ Opslaan</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('eventModal')" style="flex: 1;">❌ Annuleren</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1025,6 +1109,11 @@
         let currentView = 'calendar';
         let selectedFunction = 'all';
         let currentBookingSlot = null;
+        // Multi-event support
+        let events = [];
+        let currentEventId = null;
+        let currentEvent = null;
+
         let isAdminLoggedIn = false;
 
         // Email Configuration
@@ -1138,7 +1227,7 @@
             
             try {
                 // Find the Firebase document by searching through all bookings documents
-                const bookingsSnapshot = await window.getDocs(window.collection(window.db, 'bookings'));
+                const bookingsSnapshot = await window.getDocs(makeQuery('bookings'));
                 let bookingDocId = null;
                 
                 bookingsSnapshot.docs.forEach(doc => {
@@ -1154,7 +1243,7 @@
                 }
                 
                 // Find the timeslot Firebase document
-                const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
+                const timeSlotsSnapshot = await window.getDocs(makeQuery('timeSlots'));
                 let slotDocId = null;
                 
                 timeSlotsSnapshot.docs.forEach(doc => {
@@ -1356,23 +1445,22 @@
 
         // Tab Management
         function showTab(tabName) {
-            // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
-
-            // Hide all tab buttons active state
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-
-            // Show selected tab
             document.getElementById(tabName + 'Tab').classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
 
-            // Special handling for evaluation tab
             if (tabName === 'evaluation') {
                 checkEvaluationAvailability();
+            }
+            
+            if (tabName === 'admin' && isAdminLoggedIn) {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
             }
         }
 
@@ -1408,49 +1496,51 @@
 
         // Initialize App
         window.initializeApp = async function() {
-            console.log('🚀 Initializing Halloween 2025 Volunteer Planning App...');
+            console.log('🚀 Initializing Puzzelaars Platform...');
             
             try {
                 showLoading(true);
                 
-                // Load data from Firebase
-                await loadDataFromFirebase();
+                // Load events from Firebase
+                await loadEvents();
                 
-                // Initialize UI
-                initializeUI();
-                
-                // Setup event listeners
+                // Setup event listeners (login form etc)
                 setupEventListeners();
                 
                 showLoading(false);
-                console.log('✅ App initialized successfully!');
                 
-                // Show message if no data is available
-                if (functions.length === 0) {
-                    showError('Geen functies gevonden. Gebruik admin panel om functies toe te voegen.');
-                }
-                if (timeSlots.length === 0) {
-                    console.log('ℹ️ Geen tijdsloten gevonden. Deze kunnen via admin panel toegevoegd worden.');
-                }
+                // Show portal screen
+                showPortal();
+                
+                console.log('✅ App initialized successfully!');
                 
             } catch (error) {
                 console.error('❌ Error initializing app:', error);
                 showError('Fout bij het verbinden met Firebase. Controleer de verbinding.');
                 showLoading(false);
                 
-                // Initialize UI anyway for admin access
-                initializeUI();
+                showPortal();
                 setupEventListeners();
             }
         };
 
         // Load Data from Firebase
         async function loadDataFromFirebase() {
-            console.log('📊 Loading data from Firebase...');
+            console.log('📊 Loading data from Firebase for event:', currentEventId);
             
             try {
+                const makeQuery = (collectionName) => {
+                    if (currentEventId) {
+                        return window.query(
+                            window.collection(window.db, collectionName),
+                            window.where('eventId', '==', currentEventId)
+                        );
+                    }
+                    return window.collection(window.db, collectionName);
+                };
+
                 // Load functions
-                const functionsSnapshot = await window.getDocs(window.collection(window.db, 'functions'));
+                const functionsSnapshot = await window.getDocs(makeQuery('functions'));
                 functions = functionsSnapshot.docs.map(doc => ({
                     firebaseId: doc.id,
                     id: doc.data().id || doc.id,
@@ -1474,7 +1564,7 @@
                 }));
 
                 // Load evaluations
-                const evaluationsSnapshot = await window.getDocs(window.collection(window.db, 'evaluations'));
+                const evaluationsSnapshot = await window.getDocs(makeQuery('evaluations'));
                 evaluations = evaluationsSnapshot.docs.map(doc => ({
                     firebaseId: doc.id,
                     id: doc.data().id || doc.id,
@@ -1482,7 +1572,7 @@
                 }));
 
                 // Load evaluation questions
-                const evaluationQuestionsSnapshot = await window.getDocs(window.collection(window.db, 'evaluationQuestions'));
+                const evaluationQuestionsSnapshot = await window.getDocs(makeQuery('evaluationQuestions'));
                 evaluationQuestions = evaluationQuestionsSnapshot.docs.map(doc => ({
                     firebaseId: doc.id,
                     id: doc.data().id || doc.id,
@@ -1934,7 +2024,8 @@
                 date: currentBookingSlot.date,
                 startTime: currentBookingSlot.startTime,
                 endTime: currentBookingSlot.endTime,
-                bookingDate: new Date().toISOString()
+                bookingDate: new Date().toISOString(),
+                eventId: currentEventId || null
             };
 
             try {
@@ -2442,7 +2533,8 @@
             
             // Collect data from all dynamic form fields
             const evaluation = {
-                submittedDate: new Date().toLocaleDateString('nl-NL')
+                submittedDate: new Date().toLocaleDateString('nl-NL'),
+                eventId: currentEventId || null
             };
             
             let hasRequiredFieldError = false;
@@ -2940,6 +3032,9 @@
             const content = document.getElementById('adminContent');
             
             switch(section) {
+                case 'events':
+                    showAdminEvents(content);
+                    break;
                 case 'overview':
                     showAdminOverview(content);
                     break;
@@ -2961,6 +3056,231 @@
                 case 'settings':
                     showAdminSettings(content);
                     break;
+            }
+        }
+
+
+        // Load events from Firebase
+        async function loadEvents() {
+            console.log('📅 Loading events...');
+            const snapshot = await window.getDocs(window.collection(window.db, 'events'));
+            events = snapshot.docs.map(doc => ({
+                firebaseId: doc.id,
+                id: doc.data().id || doc.id,
+                ...doc.data()
+            }));
+            events.sort((a, b) => {
+                const statusOrder = { open: 0, upcoming: 1, closed: 2 };
+                if ((statusOrder[a.status] || 0) !== (statusOrder[b.status] || 0)) {
+                    return (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
+                }
+                return (a.startDate || '').localeCompare(b.startDate || '');
+            });
+            console.log(`✅ ${events.length} evenementen geladen`);
+        }
+
+        // Show portal screen
+        function showPortal() {
+            document.getElementById('portalScreen').style.display = 'block';
+            document.getElementById('mainNavTabs').style.display = 'none';
+            document.getElementById('clientTab').classList.remove('active');
+            document.getElementById('evaluationTab').classList.remove('active');
+            document.getElementById('adminTab').classList.remove('active');
+            document.getElementById('eventBreadcrumb').style.display = 'none';
+            document.getElementById('eventHeaderInfo').style.display = 'none';
+            document.getElementById('headerBanner').style.display = 'block';
+            currentEventId = null;
+            currentEvent = null;
+            renderEventCards();
+        }
+
+        function returnToPortal() { showPortal(); }
+
+        // Render event cards on portal
+        function renderEventCards() {
+            const container = document.getElementById('eventCards');
+            const noMsg = document.getElementById('noEventsMessage');
+            const visibleEvents = events.filter(e => e.status !== 'archived');
+            if (visibleEvents.length === 0) {
+                container.style.display = 'none';
+                noMsg.style.display = 'block';
+                return;
+            }
+            noMsg.style.display = 'none';
+            container.style.display = 'grid';
+            const statusLabel = { open: '🟢 Open voor inschrijving', upcoming: '🔵 Binnenkort', closed: '🔴 Gesloten' };
+            const statusStyle = { open: 'color:#16a34a;', upcoming: 'color:#0891b2;', closed: 'color:#dc2626;' };
+            container.innerHTML = visibleEvents.map(evt => {
+                const gradient = evt.gradient || 'linear-gradient(135deg, #16a34a, #22c55e)';
+                const isOpen = evt.status === 'open';
+                return `
+                    <div onclick="${isOpen ? `selectEvent('${evt.id}')` : ''}" style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);border:2px solid ${isOpen ? (evt.color||'#16a34a')+'40':'#e5e7eb'};cursor:${isOpen?'pointer':'default'};transition:all 0.3s ease;opacity:${isOpen?'1':'0.7'};">
+                        <div style="background:${gradient};padding:25px 20px;text-align:center;">
+                            <div style="font-size:2.5rem;margin-bottom:8px;">${evt.icon||'📋'}</div>
+                            <h3 style="color:white;font-family:'Poppins',sans-serif;font-size:1.2rem;font-weight:700;">${evt.name}</h3>
+                        </div>
+                        <div style="padding:20px;">
+                            <p style="color:#6b7280;font-size:0.9rem;margin-bottom:12px;">${evt.description||''}</p>
+                            ${evt.startDate ? `<p style="font-size:0.85rem;color:#374151;margin-bottom:8px;">📅 ${formatDateRange(evt.startDate,evt.endDate)}</p>` : ''}
+                            <p style="font-size:0.85rem;font-weight:600;${statusStyle[evt.status]||''}">${statusLabel[evt.status]||''}</p>
+                            ${isOpen ? `<button style="margin-top:15px;width:100%;padding:10px;background:${gradient};color:white;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.9rem;">Inschrijven →</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatDateRange(start, end) {
+            if (!start) return '';
+            const s = formatDate(start);
+            if (!end || end === start) return s;
+            return s + ' – ' + formatDate(end);
+        }
+
+        // Select event and load its data
+        async function selectEvent(eventId) {
+            const evt = events.find(e => e.id === eventId);
+            if (!evt) return;
+            currentEventId = eventId;
+            currentEvent = evt;
+            try {
+                showLoading(true);
+                await loadDataFromFirebase();
+                initializeUI();
+                showLoading(false);
+                document.getElementById('headerBanner').style.display = 'none';
+                document.getElementById('eventHeaderInfo').style.display = 'block';
+                document.getElementById('eventHeaderTitle').textContent = (evt.icon||'') + ' ' + evt.name;
+                document.getElementById('eventHeaderDates').textContent = formatDateRange(evt.startDate, evt.endDate);
+                document.getElementById('eventHeaderTitle').style.color = evt.color || 'var(--primary-color)';
+                document.getElementById('eventBreadcrumb').style.display = 'block';
+                document.getElementById('eventBreadcrumbName').textContent = evt.name;
+                document.getElementById('portalScreen').style.display = 'none';
+                document.getElementById('mainNavTabs').style.display = 'flex';
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('clientTab').classList.add('active');
+                document.querySelector('.tab-btn[onclick*="client"]').classList.add('active');
+                document.getElementById('evaluationTabTitle').textContent = evt.name + ' Evaluatie';
+                document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate || '18 oktober';
+                checkEvaluationAvailability();
+            } catch(err) {
+                showLoading(false);
+                showError('Fout bij het laden van evenementdata');
+            }
+        }
+
+        // Admin: Evenementen beheer
+        function showAdminEvents(container) {
+            let html = `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;flex-wrap:wrap;gap:15px;"><h2>📋 Evenementen (${events.length})</h2><button class="btn btn-primary" onclick="openNewEventModal()">+ Nieuw Evenement</button></div>`;
+            if (events.length === 0) {
+                html += '<div style="text-align:center;padding:40px;color:#6b7280;"><p>Nog geen evenementen aangemaakt.</p></div>';
+            } else {
+                html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">';
+                events.forEach(evt => {
+                    const g = evt.gradient || 'linear-gradient(135deg,#16a34a,#22c55e)';
+                    const sc = {open:'#16a34a',upcoming:'#0891b2',closed:'#dc2626',archived:'#9ca3af'};
+                    const sl = {open:'🟢 Open',upcoming:'🔵 Binnenkort',closed:'🔴 Gesloten',archived:'⚫ Gearchiveerd'};
+                    html += `<div style="border-radius:14px;overflow:hidden;border:2px solid #e5e7eb;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                        <div style="background:${g};padding:20px;display:flex;align-items:center;gap:12px;">
+                            <span style="font-size:2rem;">${evt.icon||'📋'}</span>
+                            <div><div style="color:white;font-weight:700;font-size:1.1rem;">${evt.name}</div>
+                            <div style="color:rgba(255,255,255,0.85);font-size:0.85rem;">${evt.startDate?formatDateRange(evt.startDate,evt.endDate):'Geen datum'}</div></div>
+                        </div>
+                        <div style="padding:16px;">
+                            <p style="color:#6b7280;font-size:0.85rem;margin-bottom:12px;">${evt.description||'—'}</p>
+                            <span style="display:inline-block;padding:3px 10px;border-radius:20px;background:${sc[evt.status]||'#9ca3af'}20;color:${sc[evt.status]||'#9ca3af'};font-size:0.8rem;font-weight:600;margin-bottom:14px;">${sl[evt.status]||evt.status}</span>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn btn-secondary" style="font-size:0.8rem;padding:7px 14px;" onclick="editEvent('${evt.id}')">✏️ Bewerken</button>
+                                <button class="btn btn-secondary" style="font-size:0.8rem;padding:7px 14px;" onclick="selectEventAdmin('${evt.id}')">🔧 Beheren</button>
+                                <button class="btn btn-secondary" style="font-size:0.8rem;padding:7px 14px;color:#dc2626;" onclick="deleteEvent('${evt.id}')">🗑️</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function openNewEventModal() {
+            document.getElementById('eventModalTitle').textContent = 'Nieuw Evenement';
+            document.getElementById('eventForm').reset();
+            document.getElementById('editingEventId').value = '';
+            document.getElementById('eventStatus').value = 'upcoming';
+            openModal('eventModal');
+        }
+
+        function editEvent(eventId) {
+            const evt = events.find(e => e.id === eventId);
+            if (!evt) return;
+            document.getElementById('eventModalTitle').textContent = 'Evenement Bewerken';
+            document.getElementById('editingEventId').value = eventId;
+            document.getElementById('eventName').value = evt.name || '';
+            document.getElementById('eventDescription').value = evt.description || '';
+            document.getElementById('eventIcon').value = evt.icon || '📋';
+            document.getElementById('eventColor').value = evt.color || '#16a34a';
+            document.getElementById('eventStartDate').value = evt.startDate || '';
+            document.getElementById('eventEndDate').value = evt.endDate || '';
+            document.getElementById('eventStatus').value = evt.status || 'upcoming';
+            document.getElementById('eventEvalDate').value = evt.evaluationOpenDate || '';
+            openModal('eventModal');
+        }
+
+        async function handleEventFormSubmit(e) {
+            e.preventDefault();
+            const editingId = document.getElementById('editingEventId').value;
+            const color = document.getElementById('eventColor').value;
+            const eventData = {
+                name: document.getElementById('eventName').value,
+                description: document.getElementById('eventDescription').value,
+                icon: document.getElementById('eventIcon').value || '📋',
+                color, gradient: `linear-gradient(135deg,${color},${color}cc)`,
+                startDate: document.getElementById('eventStartDate').value,
+                endDate: document.getElementById('eventEndDate').value || document.getElementById('eventStartDate').value,
+                status: document.getElementById('eventStatus').value,
+                evaluationOpenDate: document.getElementById('eventEvalDate').value,
+            };
+            try {
+                if (editingId) {
+                    const evt = events.find(e => e.id === editingId);
+                    if (evt && evt.firebaseId) {
+                        await window.updateDoc(window.doc(window.db, 'events', evt.firebaseId), eventData);
+                        Object.assign(evt, eventData);
+                        showSuccess('✅ Evenement bijgewerkt');
+                    }
+                } else {
+                    const newId = generateId();
+                    const docRef = await window.addDoc(window.collection(window.db, 'events'), { ...eventData, id: newId });
+                    events.push({ firebaseId: docRef.id, id: newId, ...eventData });
+                    showSuccess('✅ Evenement aangemaakt');
+                }
+                closeModal('eventModal');
+                showAdminEvents(document.getElementById('adminContent'));
+            } catch(err) { showError('Fout bij opslaan evenement'); }
+        }
+
+        async function deleteEvent(eventId) {
+            const evtToDelete = events.find(e => e.id === eventId);
+            const eventName = evtToDelete ? evtToDelete.name : 'dit evenement';
+            if (!confirm('Wil je het evenement "' + eventName + '" verwijderen?')) return;
+            const evt = events.find(e => e.id === eventId);
+            if (!evt || !evt.firebaseId) return;
+            try {
+                await window.deleteDoc(window.doc(window.db, 'events', evt.firebaseId));
+                events = events.filter(e => e.id !== eventId);
+                showSuccess('🗑️ Evenement verwijderd');
+                showAdminEvents(document.getElementById('adminContent'));
+            } catch(err) { showError('Fout bij verwijderen'); }
+        }
+
+        async function selectEventAdmin(eventId) {
+            await selectEvent(eventId);
+            if (isAdminLoggedIn) {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                showAdminSection('overview');
             }
         }
 
