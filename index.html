@@ -1858,17 +1858,27 @@
             // Evaluation question form
             document.getElementById('evaluationQuestionForm').addEventListener('submit', handleEvaluationQuestionSubmit);
             
-            // Modal close on outside click - prevent event bubbling issues
+            // Modal close: alleen bij echte klik op achtergrond, niet bij tekst-drag
             document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
+                let mouseDownOnBackdrop = false;
+
+                modal.addEventListener('mousedown', function(e) {
+                    mouseDownOnBackdrop = (e.target === modal);
+                });
+
+                modal.addEventListener('mouseup', function(e) {
+                    if (mouseDownOnBackdrop && e.target === modal) {
                         modal.style.display = 'none';
                     }
+                    mouseDownOnBackdrop = false;
                 });
                 
                 // Prevent modal content clicks from bubbling to modal wrapper
                 const modalContent = modal.querySelector('.modal-content');
                 if (modalContent) {
+                    modalContent.addEventListener('mousedown', function(e) {
+                        e.stopPropagation();
+                    });
                     modalContent.addEventListener('click', function(e) {
                         e.stopPropagation();
                     });
