@@ -2535,10 +2535,11 @@
             printWindow.document.write(html);
             printWindow.document.close();
             
-            // Wait for content to load before printing
-            printWindow.onload = function() {
+            // Wacht tot content gerenderd is - onload vuurt op leeg venster
+            setTimeout(() => {
+                printWindow.focus();
                 printWindow.print();
-            };
+            }, 800);
         }
 
         async function handleEvaluationSubmit(e) {
@@ -4243,7 +4244,7 @@
                 </head>
                 <body>
                     <div class="print-header">
-                        <h1 id="printEventTitle">Vrijwilligersplanning</h1>
+                        <h1>${currentEvent ? (currentEvent.icon || "") + " " + currentEvent.name : "Vrijwilligersplanning"}</h1>
                         <p><strong>Vrijwilligersplanning De Puzzel</strong></p>
                         <p>Gegenereerd op: ${new Date().toLocaleDateString('nl-NL', {
                             weekday: 'long',
@@ -4317,18 +4318,10 @@
             printWindow.document.close();
             
             // Wait for content to load, then print
-            printWindow.onload = function() {
-                setTimeout(() => {
-                    printWindow.focus();
-                    printWindow.print();
-                    // Close window after printing (user can cancel)
-                    setTimeout(() => {
-                        if (!printWindow.closed) {
-                            printWindow.close();
-                        }
-                    }, 1000);
-                }, 500);
-            };
+            setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+            }, 800);
             
             showSuccess('🖨️ Print venster geopend - planning klaar voor afdrukken!');
         }
@@ -4501,12 +4494,10 @@
             printWindow.document.close();
             
             // Wait for content to load, then print
-            printWindow.onload = function() {
-                setTimeout(() => {
-                    printWindow.print();
-                    printWindow.close();
-                }, 100);
-            };
+            setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+            }, 800);
         }
         
         function generatePrintableSchedule() {
