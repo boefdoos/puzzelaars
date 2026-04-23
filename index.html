@@ -2772,7 +2772,8 @@
                         endTime,
                         capacity,
                         booked: 0,
-                        volunteers: []
+                        volunteers: [],
+                        eventId: currentEventId || null
                     };
                     
                     // Save to Firebase
@@ -2973,7 +2974,8 @@
                         id: generateId(),
                         name,
                         description,
-                        colorIndex // Include color index
+                        colorIndex, // Include color index
+                        eventId: currentEventId || null
                     };
                     
                     // Save to Firebase
