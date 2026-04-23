@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>De Puzzel - Halloween 2025 Vrijwilligers</title>
+    <title>De Puzzel - Vrijwilligersplanning</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -865,7 +865,7 @@
                 <input type="hidden" id="editingEventId">
                 <div class="form-group">
                     <label class="form-label">Naam *</label>
-                    <input type="text" id="eventName" class="form-input" required placeholder="bv. Halloween 2026">
+                    <input type="text" id="eventName" class="form-input" required placeholder="bv. Schoolfeest 2026">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Beschrijving</label>
@@ -2356,7 +2356,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halloween 2025 - Vrijwilligersplanning</title>
+    <title>Vrijwilligersplanning - De Puzzel</title>
     <style>
         @page {
             size: A4 landscape;
@@ -2472,7 +2472,7 @@
 </head>
 <body>
     <div class="print-header">
-        <h1>🎃 Halloween 2025</h1>
+        <h1 id="printEventTitle">Vrijwilligersplanning</h1>
         <p>Vrijwilligersplanning - De Puzzel</p>
     </div>
 `;
@@ -3217,7 +3217,7 @@
                 document.getElementById('clientTab').classList.add('active');
                 document.querySelector('.tab-btn[onclick*="client"]').classList.add('active');
                 document.getElementById('evaluationTabTitle').textContent = evt.name + ' Evaluatie';
-                document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate || '18 oktober';
+                document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate || 'na het evenement';
                 checkEvaluationAvailability();
             } catch(err) {
                 showLoading(false);
@@ -3367,6 +3367,11 @@
         }
 
         function showAdminOverview(container) {
+            // Update titel dynamisch op basis van huidig event
+            const overviewTitle = document.getElementById('adminOverviewTitle');
+            if (overviewTitle && currentEvent) {
+                overviewTitle.textContent = `📊 ${currentEvent.name} - Overzicht`;
+            }
             const totalSlots = timeSlots.length;
             const totalCapacity = timeSlots.reduce((sum, slot) => sum + slot.capacity, 0);
             const totalBooked = timeSlots.reduce((sum, slot) => sum + slot.booked, 0);
@@ -3375,7 +3380,7 @@
 
             container.innerHTML = `
                 <div class="card">
-                    <h2>📊 Halloween 2025 - Admin Overzicht</h2>
+                    <h2 id="adminOverviewTitle">📊 Admin Overzicht</h2>
                     
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -3700,7 +3705,7 @@
                     <div style="text-align: center; padding: 40px; color: #6b7280;">
                         <div style="font-size: 3rem; margin-bottom: 15px;">📝</div>
                         <div style="font-size: 1.2rem; margin-bottom: 10px;">Nog geen evaluaties ontvangen</div>
-                        <div style="font-size: 0.9rem;">Evaluaties worden beschikbaar na 18 oktober 2025</div>
+                        <div style="font-size: 0.9rem;">Evaluaties worden beschikbaar na het evenement</div>
                     </div>
                 `;
             } else {
@@ -4012,7 +4017,7 @@
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `Halloween-2025-Boekingen-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
+            link.download = `${(currentEvent ? currentEvent.name : 'Puzzelaars').replace(/\s+/g, '-')}-Boekingen-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
             link.click();
 
             showSuccess(`📊 CSV geëxporteerd met ${bookings.length} boekingen`);
@@ -4049,7 +4054,7 @@
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `Halloween-2025-Evaluaties-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
+            link.download = `${(currentEvent ? currentEvent.name : 'Puzzelaars').replace(/\s+/g, '-')}-Evaluaties-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
             link.click();
 
             showSuccess(`📊 Evaluatie rapport geëxporteerd met ${evaluations.length} evaluaties`);
@@ -4103,7 +4108,7 @@
                 <html lang="nl">
                 <head>
                     <meta charset="UTF-8">
-                    <title>Halloween 2025 Planning - De Puzzel</title>
+                    <title>" + (currentEvent ? currentEvent.name : "Planning") + " - De Puzzel</title>
                     <style>
                         body {
                             font-family: 'Arial', sans-serif;
@@ -4238,7 +4243,7 @@
                 </head>
                 <body>
                     <div class="print-header">
-                        <h1>🎃 Halloween 2025</h1>
+                        <h1 id="printEventTitle">Vrijwilligersplanning</h1>
                         <p><strong>Vrijwilligersplanning De Puzzel</strong></p>
                         <p>Gegenereerd op: ${new Date().toLocaleDateString('nl-NL', {
                             weekday: 'long',
@@ -4301,7 +4306,7 @@
                     <div class="print-footer">
                         <p><strong>Totaal overzicht:</strong> ${totalBooked}/${totalCapacity} plekken geboekt (⋅ ${totalAvailable} beschikbaar)</p>
                         <p>Voor meer informatie en boekingen: zie online planning systeem</p>
-                        <p><em>De Puzzel - Halloween 2025 Vrijwilligersplanning</em></p>
+                        <p><em>De Puzzel - ${currentEvent ? currentEvent.name : "Vrijwilligersplanning"}</em></p>
                     </div>
                 </body>
                 </html>
@@ -4340,7 +4345,7 @@
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Halloween 2025 - Vrijwilligers Planning</title>
+                    <title>${currentEvent ? currentEvent.name : "Vrijwilligersplanning"} - De Puzzel</title>
                     <style>
                         @page {
                             size: A4 landscape;
@@ -4526,7 +4531,7 @@
             
             let html = `
                 <div class="print-header">
-                    <h1>🎃 Halloween 2025 - Vrijwilligers Planning</h1>
+                    <h1>${currentEvent ? (currentEvent.icon || "") + " " + currentEvent.name + " - Vrijwilligers Planning" : "Vrijwilligers Planning"}</h1>
                     <p class="subtitle">De Puzzel • Gegenereerd op ${new Date().toLocaleDateString('nl-NL')} om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 
@@ -4662,7 +4667,7 @@
                         <div><strong>Totaal:</strong> ${totalActualBooked}/${totalCapacity} vrijwilligers (${fillRate}% bezet)</div>
                     </div>
                     <p style="text-align: center; font-weight: bold;">📋 Gebruik deze planning om vrijwilligers in te delen tijdens het evenement</p>
-                    <p style="text-align: center; font-size: 8px; color: #666;">Voor wijzigingen: ga naar de online planning • Halloween 2025 - De Puzzel</p>
+                    <p style="text-align: center; font-size: 8px; color: #666;">Voor wijzigingen: ga naar de online planning • ${currentEvent ? currentEvent.name : "Vrijwilligersplanning"} - De Puzzel</p>
                 </div>
             `;
             
@@ -5156,7 +5161,7 @@
             }
         });
 
-        console.log('🎃 Halloween 2025 Volunteer Planning System Ready!');
+        console.log('✅ Puzzelaars Vrijwilligersplanning klaar!');
     </script>
 
     <!-- Footer -->
