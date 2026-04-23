@@ -719,15 +719,19 @@
 <body>
     <div class="container">
         <!-- Header -->
-        <div class="header">
-            <div id="eventBreadcrumb" style="display:none; margin-bottom: 12px;">
-                <button onclick="returnToPortal()" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(22,163,74,0.08)'" onmouseout="this.style.background='none'">← Terug naar evenementen</button>
-                <span id="eventBreadcrumbName" style="color: var(--text-light); font-size: 0.9rem; margin-left: 8px;"></span>
+        <div class="header" style="flex-direction: column; align-items: stretch; padding: 0;">
+            <!-- Breadcrumb balk: alleen zichtbaar bij geselecteerd event -->
+            <div id="eventBreadcrumb" style="display:none; padding: 12px 20px 0 20px;">
+                <button onclick="returnToPortal()" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(22,163,74,0.08)'" onmouseout="this.style.background='none'">← Terug naar evenementen</button>
             </div>
-            <img id="headerBanner" src="depuzzel_logo_groen.png" alt="De Puzzel" style="height: 80px; object-fit: contain; display: block; margin: 0 auto;">
-            <div id="eventHeaderInfo" style="display:none; margin-top: 15px;">
-                <h2 id="eventHeaderTitle" style="font-family: 'Poppins', sans-serif; font-size: 1.6rem; font-weight: 700;"></h2>
-                <p id="eventHeaderDates" style="color: var(--text-light); font-size: 0.95rem; margin-top: 4px;"></p>
+            <!-- Logo: alleen zichtbaar op portaal -->
+            <div id="headerBannerWrap" style="padding: 20px; text-align: center;">
+                <img id="headerBanner" src="depuzzel_logo_groen.png" alt="De Puzzel" style="height: 80px; object-fit: contain; display: block; margin: 0 auto;">
+            </div>
+            <!-- Event titel: alleen zichtbaar bij geselecteerd event -->
+            <div id="eventHeaderInfo" style="display:none; padding: 16px 24px 20px; text-align: center;">
+                <h2 id="eventHeaderTitle" style="font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; margin: 0;"></h2>
+                <p id="eventHeaderDates" style="color: var(--text-light); font-size: 0.95rem; margin-top: 6px;"></p>
             </div>
         </div>
 
@@ -3128,7 +3132,7 @@
             document.getElementById('adminTab').classList.remove('active');
             document.getElementById('eventBreadcrumb').style.display = 'none';
             document.getElementById('eventHeaderInfo').style.display = 'none';
-            document.getElementById('headerBanner').style.display = 'block';
+            document.getElementById('headerBannerWrap').style.display = 'block';
             currentEventId = null;
             currentEvent = null;
             renderEventCards();
@@ -3145,7 +3149,6 @@
             document.getElementById('evaluationTab').classList.remove('active');
             // Toon terug-knop
             document.getElementById('eventBreadcrumb').style.display = 'block';
-            document.getElementById('eventBreadcrumbName').textContent = 'Beheerpaneel';
             // Highlight admin tab button
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             const adminBtn = document.querySelector('.tab-btn[onclick*="admin"]');
@@ -3204,13 +3207,12 @@
                 await loadDataFromFirebase();
                 initializeUI();
                 showLoading(false);
-                document.getElementById('headerBanner').style.display = 'none';
+                document.getElementById('headerBannerWrap').style.display = 'none';
                 document.getElementById('eventHeaderInfo').style.display = 'block';
                 document.getElementById('eventHeaderTitle').textContent = (evt.icon||'') + ' ' + evt.name;
                 document.getElementById('eventHeaderDates').textContent = formatDateRange(evt.startDate, evt.endDate);
                 document.getElementById('eventHeaderTitle').style.color = evt.color || 'var(--primary-color)';
                 document.getElementById('eventBreadcrumb').style.display = 'block';
-                document.getElementById('eventBreadcrumbName').textContent = evt.name;
                 document.getElementById('portalScreen').style.display = 'none';
                 document.getElementById('mainNavTabs').style.display = 'flex';
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -3342,13 +3344,12 @@
                 initializeUI();
                 showLoading(false);
                 // Update header
-                document.getElementById('headerBanner').style.display = 'none';
+                document.getElementById('headerBannerWrap').style.display = 'none';
                 document.getElementById('eventHeaderInfo').style.display = 'block';
                 document.getElementById('eventHeaderTitle').textContent = (evt.icon||'') + ' ' + evt.name;
                 document.getElementById('eventHeaderDates').textContent = formatDateRange(evt.startDate, evt.endDate);
                 document.getElementById('eventHeaderTitle').style.color = evt.color || 'var(--primary-color)';
                 document.getElementById('eventBreadcrumb').style.display = 'block';
-                document.getElementById('eventBreadcrumbName').textContent = evt.name;
                 document.getElementById('portalScreen').style.display = 'none';
                 document.getElementById('mainNavTabs').style.display = 'flex';
                 // Blijf in admin tab
