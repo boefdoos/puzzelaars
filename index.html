@@ -783,17 +783,61 @@
 
         <!-- Portal: Event Selection Screen -->
         <div id="portalScreen" style="display:none;">
-            <div class="card" style="text-align: center; padding: 40px 30px; margin-bottom: 24px;">
-                <h2 style="font-family: 'Nunito', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin-bottom: 10px;">Welkom bij de Vrijwilligersplanning</h2>
-                <p style="color: var(--text-light); margin-bottom: 35px; max-width: 500px; margin-left: auto; margin-right: auto;">Kies een evenement waarvoor je je wil inschrijven als vrijwilliger.</p>
-                <div id="eventCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; text-align: left;"></div>
-                <div id="noEventsMessage" style="display: none; padding: 40px; color: var(--text-light);">
+
+            <!-- TRAJECT 1: Word een Puzzelaar -->
+            <div style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, #1d9955 100%); border-radius: var(--radius-lg); padding: 48px 40px; margin-bottom: 28px; position: relative; overflow: hidden;">
+                <!-- Decoratieve puzzelstukjes achtergrond -->
+                <div style="position:absolute;top:-30px;right:-30px;width:180px;height:180px;opacity:0.07;font-size:160px;line-height:1;pointer-events:none;">🧩</div>
+                <div style="position:absolute;bottom:-20px;left:10px;width:100px;height:100px;opacity:0.05;font-size:90px;line-height:1;pointer-events:none;">🧩</div>
+
+                <div style="position:relative;z-index:1;">
+                    <span style="display:inline-block;background:rgba(255,255,255,0.15);color:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:5px 14px;border-radius:100px;margin-bottom:16px;">Structureel engagement</span>
+                    <h2 style="font-family:'Nunito',sans-serif;font-size:2rem;font-weight:900;color:white;margin:0 0 12px;line-height:1.2;">Word een Puzzelaar 🧩</h2>
+                    <p style="color:rgba(255,255,255,0.85);font-size:1rem;max-width:520px;margin:0 0 28px;line-height:1.6;">Puzzelaars zijn het kloppend hart van De Puzzel. Ze engageren zich het hele jaar door en maken elk evenement mogelijk. Klaar om deel uit te maken van ons team?</p>
+
+                    <!-- Testimonials -->
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px;">
+                        <div style="background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:16px;padding:18px 20px;">
+                            <div style="font-size:1.3rem;margin-bottom:8px;">❤️</div>
+                            <p style="color:white;font-size:0.9rem;line-height:1.5;margin:0 0 10px;font-style:italic;">"Als Puzzelaar leer je zoveel bij en geef je iets terug aan onze school. Ik zou het iedereen aanraden!"</p>
+                            <div style="color:rgba(255,255,255,0.65);font-size:0.8rem;font-weight:600;">— Sarah, Puzzelaar sinds 2022</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:16px;padding:18px 20px;">
+                            <div style="font-size:1.3rem;margin-bottom:8px;">🎉</div>
+                            <p style="color:white;font-size:0.9rem;line-height:1.5;margin:0 0 10px;font-style:italic;">"De sfeer in ons team is geweldig. We organiseren samen de leukste evenementen van het jaar!"</p>
+                            <div style="color:rgba(255,255,255,0.65);font-size:0.8rem;font-weight:600;">— Jonas, Puzzelaar sinds 2023</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:16px;padding:18px 20px;">
+                            <div style="font-size:1.3rem;margin-bottom:8px;">🌱</div>
+                            <p style="color:white;font-size:0.9rem;line-height:1.5;margin:0 0 10px;font-style:italic;">"Ik geef iets terug aan mijn buurt. De kinderen blij zien tijdens onze activiteiten geeft energie!"</p>
+                            <div style="color:rgba(255,255,255,0.65);font-size:0.8rem;font-weight:600;">— Fatima, Puzzelaar sinds 2021</div>
+                        </div>
+                    </div>
+
+                    <button onclick="alert('Puzzelaar worden — formulier komt binnenkort!')" style="background:white;color:var(--primary-dark);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;border:none;border-radius:100px;padding:13px 28px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.15);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)'">
+                        Ik wil Puzzelaar worden →
+                    </button>
+                </div>
+            </div>
+
+            <!-- TRAJECT 2: Eenmalige shift -->
+            <div class="card" style="padding: 36px 32px; margin-bottom: 28px;">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;flex-wrap:wrap;">
+                    <span style="display:inline-block;background:rgba(245,158,11,0.12);color:#b45309;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:5px 14px;border-radius:100px;">Eenmalig meedoen</span>
+                </div>
+                <h2 style="font-family:'Nunito',sans-serif;font-size:1.6rem;font-weight:900;color:var(--text);margin:0 0 8px;">Kom een shift meedraaien 📅</h2>
+                <p style="color:var(--text-muted);margin:0 0 28px;max-width:560px;line-height:1.6;">Wil je gewoon eens helpen bij een specifiek evenement? Kies hieronder een activiteit en schrijf je in voor een tijdslot dat jou past.</p>
+
+                <div id="eventCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; text-align: left;"></div>
+                <div id="noEventsMessage" style="display: none; padding: 40px; text-align:center; color: var(--text-muted);">
                     <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
                     <p>Er zijn momenteel geen actieve evenementen.</p>
                 </div>
-                <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
-                    <button onclick="showPortalAdmin()" style="background: none; border: none; color: var(--text-light); font-size: 0.85rem; cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">🔧 Beheerder? Klik hier</button>
-                </div>
+            </div>
+
+            <!-- Admin link -->
+            <div style="text-align:center;padding-bottom:12px;">
+                <button onclick="showPortalAdmin()" style="background: none; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">🔧 Beheerder? Klik hier</button>
             </div>
         </div>
 
@@ -813,23 +857,7 @@
         <!-- Client Tab - Booking Section -->
         <div id="clientTab" class="tab-content">
             <!-- Volunteer Motivation Section -->
-            <div id="motivationSection" class="priority-section">
-                <h2>🌟 Waarom Vrijwilliger Worden?</h2>
-                <div id="motivationReasons" class="priority-functions">
-                    <div class="priority-function">
-                        <h4>💪 Bouw mee aan de school</h4>
-                        <p>Help mee om De Puzzel nog beter te maken voor alle leerlingen.</p>
-                    </div>
-                    <div class="priority-function">
-                        <h4>🥂 Gratis drankkaart</h4>
-                        <p>Geniet van gratis drankjes tijdens het evenement.</p>
-                    </div>
-                    <div class="priority-function">
-                        <h4>💚 Maak nieuwe vrienden</h4>
-                        <p>Leer andere (groot)ouders écht kennen.</p>
-                    </div>
-                </div>
-            </div>
+            
 
             <!-- Schedule Section -->
             <div class="card">
