@@ -767,7 +767,7 @@
         <div class="header" style="flex-direction: column; align-items: stretch; padding: 0;">
             <!-- Breadcrumb balk: alleen zichtbaar bij geselecteerd event -->
             <div id="eventBreadcrumb" style="display:none; padding: 12px 20px 0 20px;">
-                <button onclick="returnToPortal()" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(22,163,74,0.08)'" onmouseout="this.style.background='none'">← Terug naar evenementen</button>
+                <button onclick="returnToPortal()" style="background: none; border: none; cursor: pointer; color: var(--primary); font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(26,122,69,0.08)'" onmouseout="this.style.background='none'">← Terug naar evenementen</button>
             </div>
             <!-- Logo: alleen zichtbaar op portaal -->
             <div id="headerBannerWrap" style="padding: 20px; text-align: center;">
@@ -787,7 +787,7 @@
             <!-- Evenementen bovenaan -->
             <div class="card" style="padding: 36px 32px; margin-bottom: 28px;">
                 <h2 style="font-family:'Nunito',sans-serif;font-size:1.6rem;font-weight:900;color:var(--text);margin:0 0 8px;">Kom een handje helpen 📅</h2>
-                <p style="color:var(--text-muted);margin:0 0 28px;max-width:560px;line-height:1.6;">Schrijf je in voor een tijdslot bij een van onze evenementen. Geen verplichting, gewoon meedoen wanneer het past.</p>
+                <p style="color:var(--text-muted);margin:0 0 28px;max-width:560px;line-height:1.6;">Schrijf je in voor een tijdslot bij een van onze evenementen.</p>
 
                 <div id="eventCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; text-align: left;"></div>
                 <div id="noEventsMessage" style="display: none; padding: 40px; text-align:center; color: var(--text-muted);">
@@ -809,9 +809,9 @@
                 </div>
             </div>
 
-            <!-- Admin link -->
-            <div style="text-align:center;padding-bottom:12px;">
-                <button onclick="showPortalAdmin()" style="background: none; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">🔧 Beheerder? Klik hier</button>
+            <!-- Admin link onderaan -->
+            <div style="text-align:center;padding:8px 0 20px;">
+                <button onclick="showPortalAdmin()" style="background:none;border:none;color:#b0bdb2;font-size:0.75rem;cursor:pointer;padding:6px 12px;border-radius:6px;transition:color 0.2s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='#b0bdb2'">Beheerder inloggen</button>
             </div>
         </div>
 
