@@ -819,7 +819,7 @@
         <div class="nav-tabs" id="mainNavTabs" style="display:none;">
             <button class="tab-btn active" onclick="showTab('client')">📅 Boeken</button>
             <button class="tab-btn" onclick="showTab('evaluation')">⭐ Evaluatie</button>
-            <button class="tab-btn" onclick="showTab('admin')">🔧 Admin</button>
+            <button id="adminTabBtn" class="tab-btn" onclick="showTab('admin')" style="display:none;">🔧 Admin</button>
         </div>
 
         <!-- Loading Indicator -->
@@ -3073,6 +3073,7 @@
                 isAdminLoggedIn = true;
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('adminTabBtn').style.display = '';
                 showAdminSectionDirect('events');
                 showSuccess('🔓 Admin ingelogd');
             } else {
@@ -3174,6 +3175,7 @@
         function showPortal() {
             document.getElementById('portalScreen').style.display = 'block';
             document.getElementById('mainNavTabs').style.display = 'none';
+            document.getElementById('adminTabBtn').style.display = 'none';
             document.getElementById('clientTab').classList.remove('active');
             document.getElementById('evaluationTab').classList.remove('active');
             document.getElementById('adminTab').classList.remove('active');
@@ -3408,6 +3410,7 @@
                 // Toon admin panel
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('adminTabBtn').style.display = '';
                 showAdminSectionDirect('overview');
             } catch(err) {
                 showLoading(false);
