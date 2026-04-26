@@ -295,6 +295,7 @@
             box-shadow: 0 24px 64px rgba(26,122,69,0.20), 0 4px 16px rgba(0,0,0,0.12);
             border: 1.5px solid var(--border);
             position: relative;
+            overflow: hidden;
         }
         .modal-content::before {
             content: '';
@@ -302,7 +303,6 @@
             top: 0; left: 0; right: 0;
             height: 4px;
             background: linear-gradient(90deg, var(--primary), var(--accent));
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
         }
         .modal-header {
             text-align: center;
