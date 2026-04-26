@@ -3580,36 +3580,38 @@
                 const totalBooked = funcSlots.reduce((sum, slot) => sum + slot.booked, 0);
                 
                 html += `
-                    <div style="background: ${color.bg}; border-radius: 12px; padding: 20px; border: 2px solid ${color.primary}30; position: relative;" data-function-id="${func.id}">
-                        <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 5px;">
-                            <button class="btn function-edit-btn" style="padding: 6px 10px; font-size: 0.8rem; background: white; color: ${color.primary}; border: 1px solid ${color.primary};" data-function-id="${func.id}">✏️ Bewerk</button>
-                            <button class="btn function-delete-btn" style="padding: 6px 10px; font-size: 0.8rem; background: #dc2626; color: white;" data-function-id="${func.id}">🗑️ Verwijder</button>
-                        </div>
-                        
-                        <h4 style="color: ${color.primary}; margin-bottom: 10px; margin-right: 120px;">${func.name}</h4>
-                        <p style="color: #6b7280; margin-bottom: 15px; font-size: 0.9rem;">${func.description}</p>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-bottom: 15px;">
-                            <div>
-                                <div style="font-size: 1.2rem; font-weight: bold; color: ${color.primary};">${totalCapacity}</div>
-                                <div style="font-size: 0.8rem; color: #6b7280;">Capaciteit</div>
+                    <div style="background: white; border-radius: var(--radius-md); border: 1.5px solid var(--border); overflow: hidden; position: relative; box-shadow: var(--shadow-sm);" data-function-id="${func.id}">
+                        <!-- Gekleurde accent balk links -->
+                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: ${color.primary};"></div>
+                        <div style="padding: 18px 18px 18px 22px;">
+                            <!-- Header rij -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;">
+                                <h4 style="color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1rem; margin: 0; flex: 1;">${func.name}</h4>
+                                <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                                    <button class="btn function-edit-btn" style="padding: 5px 12px; font-size: 0.78rem; background: #f3f6f4; color: var(--text); border: 1.5px solid var(--border); border-radius: 100px;" data-function-id="${func.id}">✏️ Bewerk</button>
+                                    <button class="btn function-delete-btn" style="padding: 5px 10px; font-size: 0.78rem; background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 100px;" data-function-id="${func.id}">🗑️</button>
+                                </div>
                             </div>
-                            <div>
-                                <div style="font-size: 1.2rem; font-weight: bold; color: #f59e0b;">${totalBooked}</div>
-                                <div style="font-size: 0.8rem; color: #6b7280;">Geboekt</div>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 14px; line-height: 1.4;">${func.description}</p>
+                            <!-- Stats -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; background: #f8faf9; border-radius: 10px; padding: 10px 0; margin-bottom: 10px;">
+                                <div>
+                                    <div style="font-size: 1.3rem; font-weight: 900; font-family: 'Nunito', sans-serif; color: var(--text);">${totalCapacity}</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Capaciteit</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 1.3rem; font-weight: 900; font-family: 'Nunito', sans-serif; color: #d97706;">${totalBooked}</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Geboekt</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 1.3rem; font-weight: 900; font-family: 'Nunito', sans-serif; color: ${totalCapacity - totalBooked > 0 ? 'var(--primary)' : '#dc2626'};">${totalCapacity - totalBooked}</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Vrij</div>
+                                </div>
                             </div>
-                            <div>
-                                <div style="font-size: 1.2rem; font-weight: bold; color: ${totalCapacity - totalBooked > 0 ? '#16a34a' : '#dc2626'};">${totalCapacity - totalBooked}</div>
-                                <div style="font-size: 0.8rem; color: #6b7280;">Beschikbaar</div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                ${funcSlots.length} tijdslot${funcSlots.length !== 1 ? 'en' : ''}
+                                <span style="display: inline-block; width: 10px; height: 10px; background: ${color.primary}; border-radius: 50%; margin-left: 6px; vertical-align: middle;"></span>
                             </div>
-                        </div>
-                        
-                        <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 10px;">
-                            ${funcSlots.length} tijdsloten beschikbaar
-                        </div>
-                        
-                        <div style="background: rgba(255,255,255,0.7); padding: 8px; border-radius: 6px; font-size: 0.8rem;">
-                            <strong>Kleur:</strong> ${color.name} <span style="display: inline-block; width: 15px; height: 15px; background: ${color.primary}; border-radius: 3px; margin-left: 5px;"></span>
                         </div>
                     </div>
                 `;
