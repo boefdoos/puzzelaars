@@ -3035,6 +3035,10 @@
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('adminTabBtn').style.display = '';
+                // Zorg dat tabs zichtbaar zijn (ook als we nog op portal zijn)
+                document.getElementById('portalScreen').style.display = 'none';
+                document.getElementById('mainNavTabs').style.display = 'flex';
+                document.getElementById('headerBannerWrap').style.display = 'none';
                 showAdminSectionDirect('events');
                 showSuccess('🔓 Admin ingelogd');
             } else {
