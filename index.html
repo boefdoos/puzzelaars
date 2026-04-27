@@ -1281,7 +1281,7 @@
             
             try {
                 // Find the Firebase document by searching through all bookings documents
-                const bookingsSnapshot = await window.getDocs(makeQuery('bookings'));
+                const bookingsSnapshot = await window.getDocs(window.collection(window.db, 'bookings'));
                 let bookingDocId = null;
                 
                 bookingsSnapshot.docs.forEach(doc => {
@@ -1297,7 +1297,7 @@
                 }
                 
                 // Find the timeslot Firebase document
-                const timeSlotsSnapshot = await window.getDocs(makeQuery('timeSlots'));
+                const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
                 let slotDocId = null;
                 
                 timeSlotsSnapshot.docs.forEach(doc => {
@@ -1583,55 +1583,16 @@
             console.log('📊 Loading data from Firebase for event:', currentEventId);
             
             try {
-                const makeQuery = (collectionName) => {
-                    if (currentEventId) {
-                        return window.query(
-                            window.collection(window.db, collectionName),
-                            window.where('eventId', '==', currentEventId)
-                        );
-                    }
-                    return window.collection(window.db, collectionName);
+                // Laad alles, filter client-side op eventId
+                const loadCol = async (col) => {
+                    const snap = await window.getDocs(window.collection(window.db, col));
+                    const all = snap.docs.map(d => ({ firebaseId: d.id, id: d.data().id || d.id, ...d.data() }));
+                    return currentEventId ? all.filter(x => x.eventId === currentEventId) : all;
                 };
-
-                // Load functions
-                const functionsSnapshot = await window.getDocs(makeQuery('functions'));
-                functions = functionsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
-
-                // Load time slots
-                const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
-                timeSlots = timeSlotsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
-
-                // Load bookings
-                const bookingsSnapshot = await window.getDocs(window.collection(window.db, 'bookings'));
-                bookings = bookingsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
-
-                // Load evaluations
-                const evaluationsSnapshot = await window.getDocs(makeQuery('evaluations'));
-                evaluations = evaluationsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
-
-                // Load evaluation questions
-                const evaluationQuestionsSnapshot = await window.getDocs(makeQuery('evaluationQuestions'));
-                evaluationQuestions = evaluationQuestionsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
+                [functions, timeSlots, bookings, evaluations, evaluationQuestions] = await Promise.all([
+                    loadCol("functions"), loadCol("timeSlots"), loadCol("bookings"),
+                    loadCol("evaluations"), loadCol("evaluationQuestions")
+                ]);
                 
                 // Sort evaluation questions by order
                 evaluationQuestions.sort((a, b) => (a.order || 0) - (b.order || 0));
