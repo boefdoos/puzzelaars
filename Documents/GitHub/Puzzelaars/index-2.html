@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>De Puzzel - Halloween 2025 Vrijwilligers</title>
+    <title>De Puzzel - Vrijwilligersplanning</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- EmailJS CDN -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -16,7 +16,7 @@
     <!-- Firebase v9 SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where, runTransaction } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -45,6 +45,7 @@
         window.query = query;
         window.orderBy = orderBy;
         window.where = where;
+        window.runTransaction = runTransaction;
 
         console.log('✅ Firebase initialized successfully');
 
@@ -59,17 +60,35 @@
 
     <style>
         :root {
-            --primary-color: #16a34a;
-            --primary-light: #22c55e;
-            --primary-dark: #15803d;
+            --primary:       #1a7a45;
+            --primary-light: #25a85e;
+            --primary-dark:  #145e35;
+            --accent:        #f59e0b;
+            --accent-light:  #fcd34d;
+            --warm:          #fff8ef;
+            --card-bg:       #ffffff;
+            --text:          #1c2b1e;
+            --text-muted:    #5a7060;
+            --border:        #e2ede5;
+            --radius-sm:     12px;
+            --radius-md:     20px;
+            --radius-lg:     28px;
+            --shadow-sm:     0 2px 8px rgba(26,122,69,0.08);
+            --shadow-md:     0 6px 24px rgba(26,122,69,0.12);
+            --shadow-lg:     0 12px 40px rgba(26,122,69,0.16);
+
+            /* Legacy aliases voor bestaande code */
+            --primary-color: #1a7a45;
+            --primary-light: #25a85e;
+            --primary-dark:  #145e35;
             --secondary-color: #0891b2;
-            --accent-color: #ea580c;
-            --text-color: #1f2937;
-            --text-light: #6b7280;
-            --background: #f9fafb;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --border-radius: 16px;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --accent-color:  #f59e0b;
+            --text-color:    #1c2b1e;
+            --text-light:    #5a7060;
+            --background:    #f5f7f5;
+            --card-bg:       #ffffff;
+            --border-radius: 20px;
+            --shadow:        0 6px 24px rgba(26,122,69,0.10);
         }
 
         * {
@@ -79,33 +98,43 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e8 50%, #dcf4e3 100%);
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f0f5f1;
+            background-image:
+                radial-gradient(circle at 15% 15%, rgba(26,122,69,0.06) 0%, transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(245,158,11,0.06) 0%, transparent 50%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231a7a45' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             min-height: 100vh;
-            color: var(--text-color);
+            color: var(--text);
             line-height: 1.6;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 0;
+            margin-bottom: 32px;
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1.5px solid var(--border);
             position: relative;
-            overflow: hidden;
             width: 100%;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
+            align-items: stretch;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary-light));
         }
 
         .header-banner {
@@ -118,40 +147,39 @@
         .nav-tabs {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 6px;
+            margin-bottom: 28px;
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 8px;
-            box-shadow: var(--shadow);
+            border-radius: 100px;
+            padding: 6px;
+            box-shadow: var(--shadow-sm);
+            border: 1.5px solid var(--border);
             max-width: fit-content;
             margin-left: auto;
             margin-right: auto;
         }
 
         .tab-btn {
-            padding: 12px 24px;
+            padding: 10px 22px;
             background: transparent;
             border: none;
-            border-radius: 12px;
-            color: var(--text-color);
+            border-radius: 100px;
+            color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.01em;
         }
-
         .tab-btn:hover {
-            background: rgba(22, 163, 74, 0.1);
-            color: var(--primary-color);
+            background: rgba(26,122,69,0.08);
+            color: var(--primary);
         }
-
         .tab-btn.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            background: var(--primary);
             color: white;
-            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+            box-shadow: 0 4px 12px rgba(26,122,69,0.30);
         }
 
         .tab-content {
@@ -170,47 +198,51 @@
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border-radius: var(--border-radius);
-            padding: 30px;
+            border-radius: var(--radius-md);
+            padding: 28px 30px;
             margin-bottom: 24px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(34, 197, 94, 0.1);
+            box-shadow: var(--shadow-sm);
+            border: 1.5px solid var(--border);
+            position: relative;
+            transition: box-shadow 0.2s ease;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 11px 22px;
             border: none;
-            border-radius: 12px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 600;
+            border-radius: 100px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
+            letter-spacing: 0.01em;
         }
-
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            background: var(--primary);
             color: white;
+            box-shadow: 0 3px 10px rgba(26,122,69,0.25);
         }
-
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(26,122,69,0.35);
         }
-
         .btn-secondary {
-            background: #f3f4f6;
-            color: var(--text-color);
-            border: 1px solid #d1d5db;
+            background: #f3f6f4;
+            color: var(--text);
+            border: 1.5px solid var(--border);
         }
-
         .btn-secondary:hover {
-            background: #e5e7eb;
+            background: #e8ede9;
+            border-color: var(--primary-light);
         }
 
         .form-group {
@@ -219,84 +251,93 @@
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
-            color: var(--text-color);
+            font-size: 0.88rem;
+            color: var(--text);
+            font-family: 'Nunito', sans-serif;
         }
 
         .form-input {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s ease;
+            background: #fafcfb;
+            color: var(--text);
         }
-
         .form-input:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,122,69,0.10);
+            background: white;
         }
 
         .modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7) !important;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(20,40,25,0.55);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
         }
-
         .modal-content {
-            background: white !important;
-            border-radius: 20px;
-            padding: 40px;
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 36px 40px;
             max-width: 500px;
             width: 90%;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 24px 64px rgba(26,122,69,0.20), 0 4px 16px rgba(0,0,0,0.12);
+            border: 1.5px solid var(--border);
             position: relative;
-            z-index: 1001;
-            border: none !important;
+            overflow: hidden;
         }
-
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
         .modal-header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
-
         .modal-header h3 {
-            font-family: 'Poppins', sans-serif;
-            color: var(--text-color);
-            margin-bottom: 10px;
-            font-size: 1.4rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+            font-size: 1.35rem;
         }
 
         .success-message, .error-message {
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 15px 20px;
-            border-radius: 10px;
+            padding: 14px 20px;
+            border-radius: 100px;
             color: white;
-            font-weight: 600;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
             z-index: 1001;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-width: 360px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+            animation: slideIn 0.3s ease;
         }
-
-        .success-message {
-            background: linear-gradient(135deg, #10b981, #059669);
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
         }
-
-        .error-message {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
+        .success-message { background: var(--primary); }
+        .error-message   { background: #dc2626; }
 
         .loading {
             display: none;
@@ -367,12 +408,13 @@
 
         /* Priority Functions Styles */
         .priority-section {
-            background: linear-gradient(145deg, var(--accent-color), #f97316);
+            background: linear-gradient(135deg, #d97706, #f59e0b);
             color: white;
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 30px;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 28px;
             text-align: center;
+            box-shadow: 0 6px 20px rgba(245,158,11,0.25);
         }
 
         .priority-functions {
@@ -404,16 +446,15 @@
         }
 
         .date-section {
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid var(--primary-light);
             padding-left: 20px;
             margin-bottom: 30px;
         }
-
         .date-header {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--primary-color);
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary);
             margin-bottom: 15px;
         }
 
@@ -424,17 +465,16 @@
         }
 
         .function-card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 12px;
+            background: white;
+            border-radius: var(--radius-md);
             padding: 20px;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
+            border: 1.5px solid var(--border);
+            transition: all 0.22s ease;
         }
-
         .function-card:hover {
-            border-color: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.15);
+            border-color: var(--primary-light);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
         }
 
         .timeslots-grid {
@@ -445,45 +485,40 @@
         }
 
         .timeslot {
-            background: #f8fafc;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            background: #f6f9f7;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
             padding: 12px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
-
         .timeslot.available {
-            border-color: var(--primary-color);
-            background: rgba(22, 163, 74, 0.05);
-            cursor: pointer;
+            border-color: var(--primary-light);
+            background: rgba(26,122,69,0.04);
         }
-
         .timeslot.available:hover {
-            background: rgba(22, 163, 74, 0.15);
-            transform: scale(1.03);
-            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.3);
+            background: rgba(26,122,69,0.09);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26,122,69,0.14);
         }
-
         .timeslot.full {
-            background: rgba(239, 68, 68, 0.05);
-            border-color: #ef4444;
+            background: rgba(239,68,68,0.04);
+            border-color: #fca5a5;
             cursor: not-allowed;
-            opacity: 0.7;
+            opacity: 0.65;
         }
 
         /* Admin Panel Styles */
         .admin-nav {
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 28px;
             flex-wrap: wrap;
         }
-
         .admin-nav .btn {
-            font-size: 0.9rem;
-            padding: 10px 20px;
+            font-size: 0.85rem;
+            padding: 9px 18px;
         }
 
         .stats-grid {
@@ -494,23 +529,35 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            background: var(--primary);
             color: white;
-            border-radius: 12px;
-            padding: 25px;
+            border-radius: var(--radius-md);
+            padding: 24px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: -20px; right: -20px;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
         .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            font-family: 'Poppins', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 900;
+            font-family: 'Nunito', sans-serif;
+            line-height: 1;
         }
-
         .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-top: 5px;
+            font-size: 0.8rem;
+            opacity: 0.85;
+            margin-top: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         /* Evaluation Form Styles */
@@ -718,30 +765,54 @@
 <body>
     <div class="container">
         <!-- Header -->
-        <div class="header">
-            <div id="eventBreadcrumb" style="display:none; margin-bottom: 12px;">
-                <button onclick="returnToPortal()" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(22,163,74,0.08)'" onmouseout="this.style.background='none'">← Terug naar evenementen</button>
-                <span id="eventBreadcrumbName" style="color: var(--text-light); font-size: 0.9rem; margin-left: 8px;"></span>
+        <div class="header" style="flex-direction: column; align-items: stretch; padding: 0;">
+            <!-- Breadcrumb balk: alleen zichtbaar bij geselecteerd event -->
+            <div id="eventBreadcrumb" style="display:none; padding: 12px 20px 0 20px;">
+                <button onclick="returnToPortal()" style="background: none; border: none; cursor: pointer; color: var(--primary); font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(26,122,69,0.08)'" onmouseout="this.style.background='none'">← Terug naar evenementen</button>
             </div>
-            <img id="headerBanner" src="depuzzel_logo_groen.png" alt="De Puzzel" style="height: 80px; object-fit: contain; display: block; margin: 0 auto;">
-            <div id="eventHeaderInfo" style="display:none; margin-top: 15px;">
-                <h2 id="eventHeaderTitle" style="font-family: 'Poppins', sans-serif; font-size: 1.6rem; font-weight: 700;"></h2>
-                <p id="eventHeaderDates" style="color: var(--text-light); font-size: 0.95rem; margin-top: 4px;"></p>
+            <!-- Logo: alleen zichtbaar op portaal -->
+            <div id="headerBannerWrap" style="padding: 20px; text-align: center;">
+                <img id="headerBanner" src="depuzzel_logo_groen.png" alt="De Puzzel" style="height: 80px; object-fit: contain; display: block; margin: 0 auto;">
+            </div>
+            <!-- Event titel: alleen zichtbaar bij geselecteerd event -->
+            <div id="eventHeaderInfo" style="display:none; padding: 16px 24px 20px; text-align: center;">
+                <h2 id="eventHeaderTitle" style="font-family: 'Nunito', sans-serif; font-size: 1.8rem; font-weight: 700; margin: 0;"></h2>
+                <p id="eventHeaderDates" style="color: var(--text-light); font-size: 0.95rem; margin-top: 6px;"></p>
             </div>
         </div>
 
 
         <!-- Portal: Event Selection Screen -->
         <div id="portalScreen" style="display:none;">
-            <div class="card" style="text-align: center; padding: 40px 30px; margin-bottom: 24px;">
-                <img src="depuzzel_logo_groen.png" alt="De Puzzel" style="height: 60px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
-                <h2 style="font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin-bottom: 10px;">Welkom bij de Vrijwilligersplanning</h2>
-                <p style="color: var(--text-light); margin-bottom: 35px; max-width: 500px; margin-left: auto; margin-right: auto;">Kies een evenement waarvoor je je wil inschrijven als vrijwilliger.</p>
-                <div id="eventCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; text-align: left;"></div>
-                <div id="noEventsMessage" style="display: none; padding: 40px; color: var(--text-light);">
+
+            <!-- Evenementen bovenaan -->
+            <div class="card" style="padding: 36px 32px; margin-bottom: 28px;">
+                <h2 style="font-family:'Nunito',sans-serif;font-size:1.6rem;font-weight:900;color:var(--text);margin:0 0 8px;">Kom een handje helpen 📅</h2>
+                <p style="color:var(--text-muted);margin:0 0 28px;max-width:560px;line-height:1.6;">Schrijf je in voor een tijdslot bij een van onze evenementen.</p>
+
+                <div id="eventCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; text-align: left;"></div>
+                <div id="noEventsMessage" style="display: none; padding: 40px; text-align:center; color: var(--text-muted);">
                     <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
                     <p>Er zijn momenteel geen actieve evenementen.</p>
                 </div>
+            </div>
+
+            <!-- Puzzelaar worden onderaan -->
+            <div style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, #1d9955 100%); border-radius: var(--radius-lg); padding: 44px 40px; margin-bottom: 28px; position: relative; overflow: hidden;">
+                <div style="position:absolute;top:-30px;right:-30px;opacity:0.07;font-size:160px;line-height:1;pointer-events:none;">🧩</div>
+                <div style="position:absolute;bottom:-20px;left:10px;opacity:0.05;font-size:90px;line-height:1;pointer-events:none;">🧩</div>
+                <div style="position:relative;z-index:1;">
+                    <h2 style="font-family:'Nunito',sans-serif;font-size:1.8rem;font-weight:900;color:white;margin:0 0 12px;line-height:1.2;">Word een Puzzelaar 🧩</h2>
+                    <p style="color:rgba(255,255,255,0.85);font-size:1rem;max-width:520px;margin:0 0 24px;line-height:1.6;">Puzzelaars zijn het kloppend hart van De Puzzel. Ze maken elk evenement mogelijk en vormen een hecht team. Klaar om deel uit te maken van iets groots?</p>
+                    <button onclick="alert('Puzzelaar worden — formulier komt binnenkort!')" style="background:white;color:var(--primary-dark);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;border:none;border-radius:100px;padding:13px 28px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.15);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)'">
+                        Meer weten →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin link onderaan -->
+            <div style="text-align:center;padding:8px 0 20px;">
+                <button onclick="showPortalAdmin()" style="background:none;border:none;color:#b0bdb2;font-size:0.75rem;cursor:pointer;padding:6px 12px;border-radius:6px;transition:color 0.2s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='#b0bdb2'">Beheerder inloggen</button>
             </div>
         </div>
 
@@ -749,7 +820,7 @@
         <div class="nav-tabs" id="mainNavTabs" style="display:none;">
             <button class="tab-btn active" onclick="showTab('client')">📅 Boeken</button>
             <button class="tab-btn" onclick="showTab('evaluation')">⭐ Evaluatie</button>
-            <button class="tab-btn" onclick="showTab('admin')">🔧 Admin</button>
+            <button id="adminTabBtn" class="tab-btn" onclick="showTab('admin')" style="display:none;">🔧 Admin</button>
         </div>
 
         <!-- Loading Indicator -->
@@ -761,23 +832,7 @@
         <!-- Client Tab - Booking Section -->
         <div id="clientTab" class="tab-content">
             <!-- Volunteer Motivation Section -->
-            <div id="motivationSection" class="priority-section">
-                <h2>🌟 Waarom Vrijwilliger Worden?</h2>
-                <div id="motivationReasons" class="priority-functions">
-                    <div class="priority-function">
-                        <h4>💪 Bouw mee aan de school</h4>
-                        <p>Help mee om De Puzzel nog beter te maken voor alle leerlingen.</p>
-                    </div>
-                    <div class="priority-function">
-                        <h4>🥂 Gratis drankkaart</h4>
-                        <p>Geniet van gratis drankjes tijdens het evenement.</p>
-                    </div>
-                    <div class="priority-function">
-                        <h4>💚 Maak nieuwe vrienden</h4>
-                        <p>Leer andere (groot)ouders écht kennen.</p>
-                    </div>
-                </div>
-            </div>
+            
 
             <!-- Schedule Section -->
             <div class="card">
@@ -862,7 +917,7 @@
                 <input type="hidden" id="editingEventId">
                 <div class="form-group">
                     <label class="form-label">Naam *</label>
-                    <input type="text" id="eventName" class="form-input" required placeholder="bv. Halloween 2026">
+                    <input type="text" id="eventName" class="form-input" required placeholder="bv. Schoolfeest 2026">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Beschrijving</label>
@@ -1227,7 +1282,7 @@
             
             try {
                 // Find the Firebase document by searching through all bookings documents
-                const bookingsSnapshot = await window.getDocs(makeQuery('bookings'));
+                const bookingsSnapshot = await window.getDocs(window.collection(window.db, 'bookings'));
                 let bookingDocId = null;
                 
                 bookingsSnapshot.docs.forEach(doc => {
@@ -1243,7 +1298,7 @@
                 }
                 
                 // Find the timeslot Firebase document
-                const timeSlotsSnapshot = await window.getDocs(makeQuery('timeSlots'));
+                const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
                 let slotDocId = null;
                 
                 timeSlotsSnapshot.docs.forEach(doc => {
@@ -1529,55 +1584,16 @@
             console.log('📊 Loading data from Firebase for event:', currentEventId);
             
             try {
-                const makeQuery = (collectionName) => {
-                    if (currentEventId) {
-                        return window.query(
-                            window.collection(window.db, collectionName),
-                            window.where('eventId', '==', currentEventId)
-                        );
-                    }
-                    return window.collection(window.db, collectionName);
+                // Laad alles, filter client-side op eventId
+                const loadCol = async (col) => {
+                    const snap = await window.getDocs(window.collection(window.db, col));
+                    const all = snap.docs.map(d => ({ firebaseId: d.id, id: d.data().id || d.id, ...d.data() }));
+                    return currentEventId ? all.filter(x => x.eventId === currentEventId) : all;
                 };
-
-                // Load functions
-                const functionsSnapshot = await window.getDocs(makeQuery('functions'));
-                functions = functionsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
-
-                // Load time slots
-                const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
-                timeSlots = timeSlotsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
-
-                // Load bookings
-                const bookingsSnapshot = await window.getDocs(window.collection(window.db, 'bookings'));
-                bookings = bookingsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
-
-                // Load evaluations
-                const evaluationsSnapshot = await window.getDocs(makeQuery('evaluations'));
-                evaluations = evaluationsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
-
-                // Load evaluation questions
-                const evaluationQuestionsSnapshot = await window.getDocs(makeQuery('evaluationQuestions'));
-                evaluationQuestions = evaluationQuestionsSnapshot.docs.map(doc => ({
-                    firebaseId: doc.id,
-                    id: doc.data().id || doc.id,
-                    ...doc.data()
-                }));
+                [functions, timeSlots, bookings, evaluations, evaluationQuestions] = await Promise.all([
+                    loadCol("functions"), loadCol("timeSlots"), loadCol("bookings"),
+                    loadCol("evaluations"), loadCol("evaluationQuestions")
+                ]);
                 
                 // Sort evaluation questions by order
                 evaluationQuestions.sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -1855,17 +1871,27 @@
             // Evaluation question form
             document.getElementById('evaluationQuestionForm').addEventListener('submit', handleEvaluationQuestionSubmit);
             
-            // Modal close on outside click - prevent event bubbling issues
+            // Modal close: alleen bij echte klik op achtergrond, niet bij tekst-drag
             document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
+                let mouseDownOnBackdrop = false;
+
+                modal.addEventListener('mousedown', function(e) {
+                    mouseDownOnBackdrop = (e.target === modal);
+                });
+
+                modal.addEventListener('mouseup', function(e) {
+                    if (mouseDownOnBackdrop && e.target === modal) {
                         modal.style.display = 'none';
                     }
+                    mouseDownOnBackdrop = false;
                 });
                 
                 // Prevent modal content clicks from bubbling to modal wrapper
                 const modalContent = modal.querySelector('.modal-content');
                 if (modalContent) {
+                    modalContent.addEventListener('mousedown', function(e) {
+                        e.stopPropagation();
+                    });
                     modalContent.addEventListener('click', function(e) {
                         e.stopPropagation();
                     });
@@ -2029,93 +2055,100 @@
             };
 
             try {
-                // Save booking to Firebase
-                await window.addDoc(window.collection(window.db, 'bookings'), formData);
-                
-                // Try to update time slot in Firebase
+                // Gebruik Firestore transaction om race conditions te voorkomen
+                // (voorkomt dat twee mensen tegelijk dezelfde laatste plek boeken)
                 let firebaseSlotId = currentBookingSlot.firebaseId;
-                
-                // If no direct firebaseId, search for it
+
                 if (!firebaseSlotId) {
+                    // Zoek het Firebase document ID op
                     const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
-                    
-                    timeSlotsSnapshot.docs.forEach(doc => {
-                        const data = doc.data();
-                        // Match by all slot properties to find the correct document
+                    timeSlotsSnapshot.docs.forEach(d => {
+                        const data = d.data();
                         if (data.functionId === currentBookingSlot.functionId &&
                             data.date === currentBookingSlot.date &&
                             data.startTime === currentBookingSlot.startTime &&
-                            data.endTime === currentBookingSlot.endTime &&
-                            data.capacity === currentBookingSlot.capacity) {
-                            firebaseSlotId = doc.id;
+                            data.endTime === currentBookingSlot.endTime) {
+                            firebaseSlotId = d.id;
                         }
                     });
                 }
-                
-                // Update time slot if Firebase ID found
-                if (firebaseSlotId) {
-                    try {
-                        const slotRef = window.doc(window.db, 'timeSlots', firebaseSlotId);
-                        await window.updateDoc(slotRef, {
-                            booked: currentBookingSlot.booked + 1,
-                            volunteers: [...(currentBookingSlot.volunteers || []), {
-                                name: formData.name,
-                                email: formData.email,
-                                phone: formData.phone
-                            }]
-                        });
-                        console.log('✅ Timeslot updated in Firebase with ID:', firebaseSlotId);
-                    } catch (updateError) {
-                        console.error('❌ Error updating timeslot in Firebase:', updateError);
-                        // Continue with local data update even if Firebase fails
-                    }
-                } else {
-                    console.warn('⚠️ Firebase timeslot not found, updating local data only');
-                    console.log('Looking for slot:', {
-                        functionId: currentBookingSlot.functionId,
-                        date: currentBookingSlot.date,
-                        startTime: currentBookingSlot.startTime,
-                        endTime: currentBookingSlot.endTime,
-                        capacity: currentBookingSlot.capacity
-                    });
+
+                if (!firebaseSlotId) {
+                    throw new Error('Tijdslot niet gevonden in database');
                 }
 
-                // Send confirmation email
-                await sendConfirmationEmail(formData);
-                
-                // Update local data
-                currentBookingSlot.booked += 1;
+                // Atomische transaction: controleer capaciteit EN sla boeking op
+                const slotRef = window.doc(window.db, 'timeSlots', firebaseSlotId);
+                let bookingSuccessful = false;
+
+                await window.runTransaction(window.db, async (transaction) => {
+                    const slotDoc = await transaction.get(slotRef);
+                    if (!slotDoc.exists()) throw new Error('Tijdslot bestaat niet meer');
+
+                    const slotData = slotDoc.data();
+                    const currentBooked = slotData.booked || 0;
+                    const capacity = slotData.capacity || 0;
+
+                    // Controleer opnieuw of er nog plek is (atomisch!)
+                    if (currentBooked >= capacity) {
+                        throw new Error('VOL: Dit tijdslot is net volzet door een andere boeking.');
+                    }
+
+                    // Update het slot atomisch
+                    transaction.update(slotRef, {
+                        booked: currentBooked + 1,
+                        volunteers: [...(slotData.volunteers || []), {
+                            name: formData.name,
+                            email: formData.email,
+                            phone: formData.phone
+                        }]
+                    });
+
+                    bookingSuccessful = true;
+                });
+
+                // Transaction gelukt - sla de boeking op
+                await window.addDoc(window.collection(window.db, 'bookings'), formData);
+                console.log('✅ Boeking opgeslagen via transaction');
+
+                // Update lokale staat
+                currentBookingSlot.booked = (currentBookingSlot.booked || 0) + 1;
                 if (!currentBookingSlot.volunteers) currentBookingSlot.volunteers = [];
                 currentBookingSlot.volunteers.push({
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone
                 });
-                bookings.push(formData);
+                bookings.push({ ...formData, id: Date.now().toString() });
+
+                // Herlaad slots vanuit Firebase voor accurate telling
+                const freshSlots = await window.getDocs(window.collection(window.db, 'timeSlots'));
+                timeSlots = freshSlots.docs.map(d => ({ firebaseId: d.id, id: d.data().id || d.id, ...d.data() }));
+                if (currentEventId) timeSlots = timeSlots.filter(x => x.eventId === currentEventId);
 
                 closeModal('bookingModal');
                 showBookingSuccess(formData);
                 renderSchedule();
-                
-                // Re-enable button (for next booking)
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalButtonText;
-                submitButton.style.opacity = '1';
-                submitButton.style.cursor = 'pointer';
-                
-            } catch (error) {
-                console.error('❌ Error saving booking:', error);
-                showError('Fout bij het opslaan van de boeking');
-                
-                // Re-enable button on error
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalButtonText;
-                submitButton.style.opacity = '1';
-                submitButton.style.cursor = 'pointer';
-            }
-        }
+                updatePriorityFunctions && updatePriorityFunctions();
 
-        function showBookingSuccess(booking) {
+            } catch (error) {
+                console.error('❌ Boekingsfout:', error);
+                // Reset knop
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
+
+                if (error.message && error.message.startsWith('VOL:')) {
+                    showError('Dit tijdslot is net volzet. Kies een ander tijdslot.');
+                    renderSchedule(); // Ververs het scherm
+                } else {
+                    showError('Fout bij het opslaan van de boeking. Probeer opnieuw.');
+                }
+                return; // Voorkom dubbele afhandeling hieronder
+            }
+
+                    function showBookingSuccess(booking) {
             const func = functions.find(f => f.id === booking.functionId);
             const successContent = document.getElementById('successContent');
             
@@ -2313,220 +2346,7 @@
         }
 
         // Export Schedule to Print with chronological sorting
-        function exportScheduleToPrint() {
-            // Create a print window with sorted data
-            const printWindow = window.open('', '_blank');
-            
-            // Sort timeslots chronologically: first by date, then by time
-            const sortedSlots = [...timeSlots].sort((a, b) => {
-                // First sort by date
-                if (a.date !== b.date) {
-                    return a.date.localeCompare(b.date);
-                }
-                // Then sort by start time
-                return a.startTime.localeCompare(b.startTime);
-            });
-            
-            // Group slots by date for organized display
-            const slotsByDate = {};
-            sortedSlots.forEach(slot => {
-                if (!slotsByDate[slot.date]) {
-                    slotsByDate[slot.date] = [];
-                }
-                slotsByDate[slot.date].push(slot);
-            });
-            
-            // Generate HTML for print
-            let html = `
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halloween 2025 - Vrijwilligersplanning</title>
-    <style>
-        @page {
-            size: A4 landscape;
-            margin: 2cm 2.5cm;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', Arial, sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
-            color: #1f2937;
-        }
-        
-        .print-header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #16a34a;
-        }
-        
-        .print-header h1 {
-            color: #16a34a;
-            font-size: 28pt;
-            margin-bottom: 8px;
-            font-weight: 800;
-        }
-        
-        .print-header p {
-            color: #6b7280;
-            font-size: 12pt;
-        }
-        
-        .print-date-section {
-            page-break-inside: avoid;
-            margin-bottom: 30px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .print-date-header {
-            background: #16a34a;
-            color: white;
-            padding: 12px 15px;
-            font-size: 14pt;
-            font-weight: bold;
-        }
-        
-        .print-timeslots {
-            padding: 15px;
-        }
-        
-        .print-timeslot {
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: #f9fafb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .print-timeslot:last-child {
-            margin-bottom: 0;
-        }
-        
-        .print-slot-info {
-            flex: 1;
-        }
-        
-        .print-function-name {
-            font-weight: bold;
-            color: #16a34a;
-            font-size: 12pt;
-            margin-bottom: 4px;
-        }
-        
-        .print-time {
-            font-weight: 600;
-            color: #374151;
-            font-size: 11pt;
-        }
-        
-        .print-capacity {
-            color: #6b7280;
-            font-size: 10pt;
-            text-align: right;
-            padding-left: 15px;
-        }
-        
-        .print-capacity-label {
-            display: block;
-            font-size: 9pt;
-            color: #9ca3af;
-        }
-        
-        .print-footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #e5e7eb;
-            text-align: center;
-            color: #6b7280;
-            font-size: 9pt;
-        }
-    </style>
-</head>
-<body>
-    <div class="print-header">
-        <h1>🎃 Halloween 2025</h1>
-        <p>Vrijwilligersplanning - De Puzzel</p>
-    </div>
-`;
-            
-            // Add date sections in chronological order
-            Object.keys(slotsByDate).sort().forEach(date => {
-                const dateSlots = slotsByDate[date];
-                
-                html += `
-    <div class="print-date-section">
-        <div class="print-date-header">📅 ${formatDate(date)}</div>
-        <div class="print-timeslots">
-`;
-                
-                // Slots are already sorted by time within each date
-                dateSlots.forEach(slot => {
-                    const func = functions.find(f => f.id === slot.functionId);
-                    const available = slot.capacity - slot.booked;
-                    const funcName = func ? func.name : 'Onbekende functie';
-                    
-                    html += `
-            <div class="print-timeslot">
-                <div class="print-slot-info">
-                    <div class="print-function-name">${funcName}</div>
-                    <div class="print-time">🕐 ${slot.startTime} - ${slot.endTime}</div>
-                </div>
-                <div class="print-capacity">
-                    <strong>${slot.booked}/${slot.capacity}</strong> geboekt<br>
-                    <span class="print-capacity-label">${available} beschikbaar</span>
-                </div>
-            </div>
-`;
-                });
-                
-                html += `
-        </div>
-    </div>
-`;
-            });
-            
-            // Add footer
-            const printDate = new Date().toLocaleDateString('nl-NL', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            html += `
-    <div class="print-footer">
-        <p>Afgedrukt op ${printDate}</p>
-    </div>
-</body>
-</html>
-`;
-            
-            // Write to print window and trigger print
-            printWindow.document.write(html);
-            printWindow.document.close();
-            
-            // Wait for content to load before printing
-            printWindow.onload = function() {
-                printWindow.print();
-            };
-        }
+
 
         async function handleEvaluationSubmit(e) {
             e.preventDefault();
@@ -2770,7 +2590,8 @@
                         endTime,
                         capacity,
                         booked: 0,
-                        volunteers: []
+                        volunteers: [],
+                        eventId: currentEventId || null
                     };
                     
                     // Save to Firebase
@@ -2971,7 +2792,8 @@
                         id: generateId(),
                         name,
                         description,
-                        colorIndex // Include color index
+                        colorIndex, // Include color index
+                        eventId: currentEventId || null
                     };
                     
                     // Save to Firebase
@@ -3006,10 +2828,39 @@
                 isAdminLoggedIn = true;
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
-                showAdminSection('overview');
+                document.getElementById('adminTabBtn').style.display = '';
+                // Zorg dat tabs zichtbaar zijn (ook als we nog op portal zijn)
+                document.getElementById('portalScreen').style.display = 'none';
+                document.getElementById('mainNavTabs').style.display = 'flex';
+                document.getElementById('headerBannerWrap').style.display = 'none';
+                showAdminSectionDirect('events');
                 showSuccess('🔓 Admin ingelogd');
             } else {
                 showError('❌ Onjuist wachtwoord');
+            }
+        }
+
+        // Programmatische versie zonder event.target
+        function showAdminSectionDirect(section) {
+            document.querySelectorAll('.admin-nav .btn').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+            const activeBtn = document.querySelector(`.admin-nav .btn[onclick*="'${section}'"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('btn-secondary');
+                activeBtn.classList.add('btn-primary');
+            }
+            const content = document.getElementById('adminContent');
+            switch(section) {
+                case 'events': showAdminEvents(content); break;
+                case 'overview': showAdminOverview(content); break;
+                case 'bookings': showAdminBookings(content); break;
+                case 'functions': showAdminFunctions(content); break;
+                case 'timeslots': showAdminTimeslots(content); break;
+                case 'evaluations': showAdminEvaluations(content); break;
+                case 'evaluation-form': showAdminEvaluationForm(content); break;
+                case 'settings': showAdminSettings(content); break;
             }
         }
 
@@ -3083,18 +2934,34 @@
         function showPortal() {
             document.getElementById('portalScreen').style.display = 'block';
             document.getElementById('mainNavTabs').style.display = 'none';
+            document.getElementById('adminTabBtn').style.display = 'none';
             document.getElementById('clientTab').classList.remove('active');
             document.getElementById('evaluationTab').classList.remove('active');
             document.getElementById('adminTab').classList.remove('active');
             document.getElementById('eventBreadcrumb').style.display = 'none';
             document.getElementById('eventHeaderInfo').style.display = 'none';
-            document.getElementById('headerBanner').style.display = 'block';
+            document.getElementById('headerBannerWrap').style.display = 'block';
             currentEventId = null;
             currentEvent = null;
             renderEventCards();
         }
 
         function returnToPortal() { showPortal(); }
+
+        function showPortalAdmin() {
+            // Toon admin tab direct vanuit portaal
+            document.getElementById('portalScreen').style.display = 'none';
+            document.getElementById('mainNavTabs').style.display = 'flex';
+            document.getElementById('adminTab').classList.add('active');
+            document.getElementById('clientTab').classList.remove('active');
+            document.getElementById('evaluationTab').classList.remove('active');
+            // Toon terug-knop
+            document.getElementById('eventBreadcrumb').style.display = 'block';
+            // Highlight admin tab button
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const adminBtn = document.querySelector('.tab-btn[onclick*="admin"]');
+            if (adminBtn) adminBtn.classList.add('active');
+        }
 
         // Render event cards on portal
         function renderEventCards() {
@@ -3148,13 +3015,12 @@
                 await loadDataFromFirebase();
                 initializeUI();
                 showLoading(false);
-                document.getElementById('headerBanner').style.display = 'none';
+                document.getElementById('headerBannerWrap').style.display = 'none';
                 document.getElementById('eventHeaderInfo').style.display = 'block';
                 document.getElementById('eventHeaderTitle').textContent = (evt.icon||'') + ' ' + evt.name;
                 document.getElementById('eventHeaderDates').textContent = formatDateRange(evt.startDate, evt.endDate);
                 document.getElementById('eventHeaderTitle').style.color = evt.color || 'var(--primary-color)';
                 document.getElementById('eventBreadcrumb').style.display = 'block';
-                document.getElementById('eventBreadcrumbName').textContent = evt.name;
                 document.getElementById('portalScreen').style.display = 'none';
                 document.getElementById('mainNavTabs').style.display = 'flex';
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -3162,7 +3028,7 @@
                 document.getElementById('clientTab').classList.add('active');
                 document.querySelector('.tab-btn[onclick*="client"]').classList.add('active');
                 document.getElementById('evaluationTabTitle').textContent = evt.name + ' Evaluatie';
-                document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate || '18 oktober';
+                document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate || 'na het evenement';
                 checkEvaluationAvailability();
             } catch(err) {
                 showLoading(false);
@@ -3276,15 +3142,47 @@
         }
 
         async function selectEventAdmin(eventId) {
-            await selectEvent(eventId);
-            if (isAdminLoggedIn) {
+            const evt = events.find(e => e.id === eventId);
+            if (!evt) return;
+            currentEventId = eventId;
+            currentEvent = evt;
+            try {
+                showLoading(true);
+                await loadDataFromFirebase();
+                initializeUI();
+                showLoading(false);
+                // Update header
+                document.getElementById('headerBannerWrap').style.display = 'none';
+                document.getElementById('eventHeaderInfo').style.display = 'block';
+                document.getElementById('eventHeaderTitle').textContent = (evt.icon||'') + ' ' + evt.name;
+                document.getElementById('eventHeaderDates').textContent = formatDateRange(evt.startDate, evt.endDate);
+                document.getElementById('eventHeaderTitle').style.color = evt.color || 'var(--primary-color)';
+                document.getElementById('eventBreadcrumb').style.display = 'block';
+                document.getElementById('portalScreen').style.display = 'none';
+                document.getElementById('mainNavTabs').style.display = 'flex';
+                // Blijf in admin tab
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('adminTab').classList.add('active');
+                const adminBtn = document.querySelector('.tab-btn[onclick*=\'admin\']');
+                if (adminBtn) adminBtn.classList.add('active');
+                // Toon admin panel
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
-                showAdminSection('overview');
+                document.getElementById('adminTabBtn').style.display = '';
+                showAdminSectionDirect('overview');
+            } catch(err) {
+                showLoading(false);
+                showError('Fout bij het laden van evenementdata');
             }
         }
 
         function showAdminOverview(container) {
+            // Update titel dynamisch op basis van huidig event
+            const overviewTitle = document.getElementById('adminOverviewTitle');
+            if (overviewTitle && currentEvent) {
+                overviewTitle.textContent = `📊 ${currentEvent.name} - Overzicht`;
+            }
             const totalSlots = timeSlots.length;
             const totalCapacity = timeSlots.reduce((sum, slot) => sum + slot.capacity, 0);
             const totalBooked = timeSlots.reduce((sum, slot) => sum + slot.booked, 0);
@@ -3293,7 +3191,7 @@
 
             container.innerHTML = `
                 <div class="card">
-                    <h2>📊 Halloween 2025 - Admin Overzicht</h2>
+                    <h2 id="adminOverviewTitle">📊 Admin Overzicht</h2>
                     
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -3441,36 +3339,38 @@
                 const totalBooked = funcSlots.reduce((sum, slot) => sum + slot.booked, 0);
                 
                 html += `
-                    <div style="background: ${color.bg}; border-radius: 12px; padding: 20px; border: 2px solid ${color.primary}30; position: relative;" data-function-id="${func.id}">
-                        <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 5px;">
-                            <button class="btn function-edit-btn" style="padding: 6px 10px; font-size: 0.8rem; background: white; color: ${color.primary}; border: 1px solid ${color.primary};" data-function-id="${func.id}">✏️ Bewerk</button>
-                            <button class="btn function-delete-btn" style="padding: 6px 10px; font-size: 0.8rem; background: #dc2626; color: white;" data-function-id="${func.id}">🗑️ Verwijder</button>
-                        </div>
-                        
-                        <h4 style="color: ${color.primary}; margin-bottom: 10px; margin-right: 120px;">${func.name}</h4>
-                        <p style="color: #6b7280; margin-bottom: 15px; font-size: 0.9rem;">${func.description}</p>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-bottom: 15px;">
-                            <div>
-                                <div style="font-size: 1.2rem; font-weight: bold; color: ${color.primary};">${totalCapacity}</div>
-                                <div style="font-size: 0.8rem; color: #6b7280;">Capaciteit</div>
+                    <div style="background: white; border-radius: var(--radius-md); border: 1.5px solid var(--border); overflow: hidden; position: relative; box-shadow: var(--shadow-sm);" data-function-id="${func.id}">
+                        <!-- Gekleurde accent balk links -->
+                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: ${color.primary};"></div>
+                        <div style="padding: 18px 18px 18px 22px;">
+                            <!-- Header rij -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;">
+                                <h4 style="color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1rem; margin: 0; flex: 1;">${func.name}</h4>
+                                <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                                    <button class="btn function-edit-btn" style="padding: 5px 12px; font-size: 0.78rem; background: #f3f6f4; color: var(--text); border: 1.5px solid var(--border); border-radius: 100px;" data-function-id="${func.id}">✏️ Bewerk</button>
+                                    <button class="btn function-delete-btn" style="padding: 5px 10px; font-size: 0.78rem; background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 100px;" data-function-id="${func.id}">🗑️</button>
+                                </div>
                             </div>
-                            <div>
-                                <div style="font-size: 1.2rem; font-weight: bold; color: #f59e0b;">${totalBooked}</div>
-                                <div style="font-size: 0.8rem; color: #6b7280;">Geboekt</div>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 14px; line-height: 1.4;">${func.description}</p>
+                            <!-- Stats -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; background: #f8faf9; border-radius: 10px; padding: 10px 0; margin-bottom: 10px;">
+                                <div>
+                                    <div style="font-size: 1.3rem; font-weight: 900; font-family: 'Nunito', sans-serif; color: var(--text);">${totalCapacity}</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Capaciteit</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 1.3rem; font-weight: 900; font-family: 'Nunito', sans-serif; color: #d97706;">${totalBooked}</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Geboekt</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 1.3rem; font-weight: 900; font-family: 'Nunito', sans-serif; color: ${totalCapacity - totalBooked > 0 ? 'var(--primary)' : '#dc2626'};">${totalCapacity - totalBooked}</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Vrij</div>
+                                </div>
                             </div>
-                            <div>
-                                <div style="font-size: 1.2rem; font-weight: bold; color: ${totalCapacity - totalBooked > 0 ? '#16a34a' : '#dc2626'};">${totalCapacity - totalBooked}</div>
-                                <div style="font-size: 0.8rem; color: #6b7280;">Beschikbaar</div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                ${funcSlots.length} tijdslot${funcSlots.length !== 1 ? 'en' : ''}
+                                <span style="display: inline-block; width: 10px; height: 10px; background: ${color.primary}; border-radius: 50%; margin-left: 6px; vertical-align: middle;"></span>
                             </div>
-                        </div>
-                        
-                        <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 10px;">
-                            ${funcSlots.length} tijdsloten beschikbaar
-                        </div>
-                        
-                        <div style="background: rgba(255,255,255,0.7); padding: 8px; border-radius: 6px; font-size: 0.8rem;">
-                            <strong>Kleur:</strong> ${color.name} <span style="display: inline-block; width: 15px; height: 15px; background: ${color.primary}; border-radius: 3px; margin-left: 5px;"></span>
                         </div>
                     </div>
                 `;
@@ -3618,7 +3518,7 @@
                     <div style="text-align: center; padding: 40px; color: #6b7280;">
                         <div style="font-size: 3rem; margin-bottom: 15px;">📝</div>
                         <div style="font-size: 1.2rem; margin-bottom: 10px;">Nog geen evaluaties ontvangen</div>
-                        <div style="font-size: 0.9rem;">Evaluaties worden beschikbaar na 18 oktober 2025</div>
+                        <div style="font-size: 0.9rem;">Evaluaties worden beschikbaar na het evenement</div>
                     </div>
                 `;
             } else {
@@ -3930,7 +3830,7 @@
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `Halloween-2025-Boekingen-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
+            link.download = `${(currentEvent ? currentEvent.name : 'Puzzelaars').replace(/\s+/g, '-')}-Boekingen-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
             link.click();
 
             showSuccess(`📊 CSV geëxporteerd met ${bookings.length} boekingen`);
@@ -3967,7 +3867,7 @@
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `Halloween-2025-Evaluaties-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
+            link.download = `${(currentEvent ? currentEvent.name : 'Puzzelaars').replace(/\s+/g, '-')}-Evaluaties-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
             link.click();
 
             showSuccess(`📊 Evaluatie rapport geëxporteerd met ${evaluations.length} evaluaties`);
@@ -4000,429 +3900,62 @@
         }
 
         // Export Schedule to Print Function
-        function exportScheduleToPrint() {
-            // Create a new window for printing
-            const printWindow = window.open('', '_blank', 'width=1200,height=800');
-            
-            // Get current schedule data
-            const slotsByDate = {};
-            timeSlots.forEach(slot => {
-                if (selectedFunction !== 'all' && slot.functionId !== selectedFunction) return;
-                
-                if (!slotsByDate[slot.date]) {
-                    slotsByDate[slot.date] = [];
-                }
-                slotsByDate[slot.date].push(slot);
-            });
-            
-            // Generate print HTML
-            let printHTML = `
-                <!DOCTYPE html>
-                <html lang="nl">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Halloween 2025 Planning - De Puzzel</title>
-                    <style>
-                        body {
-                            font-family: 'Arial', sans-serif;
-                            margin: 0;
-                            padding: 20px;
-                            background: white;
-                            color: #1f2937;
-                            line-height: 1.4;
-                        }
-                        
-                        .print-header {
-                            text-align: center;
-                            margin-bottom: 30px;
-                            padding: 20px;
-                            border-bottom: 3px solid #16a34a;
-                        }
-                        
-                        .print-header h1 {
-                            color: #16a34a;
-                            font-size: 2.5rem;
-                            margin-bottom: 10px;
-                            font-weight: bold;
-                        }
-                        
-                        .print-header p {
-                            font-size: 1.2rem;
-                            color: #6b7280;
-                            margin: 5px 0;
-                        }
-                        
-                        .print-date-section {
-                            page-break-inside: avoid;
-                            margin-bottom: 30px;
-                            border: 2px solid #e5e7eb;
-                            border-radius: 8px;
-                            overflow: hidden;
-                        }
-                        
-                        .print-date-header {
-                            background: #16a34a;
-                            color: white;
-                            padding: 15px 20px;
-                            font-size: 1.4rem;
-                            font-weight: bold;
-                            margin: 0;
-                        }
-                        
-                        .print-timeslots {
-                            padding: 20px;
-                        }
-                        
-                        .print-timeslot {
-                            border: 1px solid #d1d5db;
-                            border-radius: 6px;
-                            padding: 15px;
-                            margin-bottom: 15px;
-                            background: #f8fafc;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        }
-                        
-                        .print-timeslot-info {
-                            flex: 1;
-                        }
-                        
-                        .print-function-name {
-                            font-weight: bold;
-                            color: #16a34a;
-                            font-size: 1.1rem;
-                            margin-bottom: 5px;
-                        }
-                        
-                        .print-function-desc {
-                            color: #6b7280;
-                            font-size: 0.9rem;
-                            margin-bottom: 8px;
-                        }
-                        
-                        .print-time {
-                            font-weight: 600;
-                            font-size: 1rem;
-                            color: #374151;
-                        }
-                        
-                        .print-capacity {
-                            text-align: right;
-                            min-width: 120px;
-                        }
-                        
-                        .print-capacity-available {
-                            color: #16a34a;
-                            font-weight: bold;
-                            font-size: 1.1rem;
-                        }
-                        
-                        .print-capacity-full {
-                            color: #dc2626;
-                            font-weight: bold;
-                            font-size: 1.1rem;
-                        }
-                        
-                        .print-capacity-total {
-                            color: #6b7280;
-                            font-size: 0.9rem;
-                        }
-                        
-                        .print-footer {
-                            margin-top: 40px;
-                            text-align: center;
-                            color: #6b7280;
-                            font-size: 0.9rem;
-                            padding-top: 20px;
-                            border-top: 1px solid #e5e7eb;
-                        }
-                        
-                        @page {
-                            size: A4 landscape;
-                            margin: 1.5cm;
-                        }
-                        
-                        @media print {
-                            body {
-                                font-size: 12px;
-                            }
-                            
-                            .print-date-section {
-                                page-break-inside: avoid;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="print-header">
-                        <h1>🎃 Halloween 2025</h1>
-                        <p><strong>Vrijwilligersplanning De Puzzel</strong></p>
-                        <p>Gegenereerd op: ${new Date().toLocaleDateString('nl-NL', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })}</p>
-                        ${selectedFunction !== 'all' ? `<p><em>Gefilterd op: ${functions.find(f => f.id === selectedFunction)?.name || 'Onbekend'}</em></p>` : ''}
-                    </div>
-            `;
-            
-            // Add schedule data
-            Object.keys(slotsByDate).sort().forEach(date => {
-                const dateSlots = slotsByDate[date];
-                
-                printHTML += `
-                    <div class="print-date-section">
-                        <div class="print-date-header">${formatDate(date)}</div>
-                        <div class="print-timeslots">
-                `;
-                
-                dateSlots.sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
-                    const func = functions.find(f => f.id === slot.functionId);
-                    const available = slot.capacity - slot.booked;
-                    const isAvailable = available > 0;
-                    
-                    printHTML += `
-                        <div class="print-timeslot">
-                            <div class="print-timeslot-info">
-                                <div class="print-function-name">${func?.name || 'Onbekende functie'}</div>
-                                <div class="print-function-desc">${func?.description || ''}</div>
-                                <div class="print-time">🕐 ${slot.startTime} - ${slot.endTime}</div>
-                            </div>
-                            <div class="print-capacity">
-                                <div class="${isAvailable ? 'print-capacity-available' : 'print-capacity-full'}">
-                                    ${isAvailable ? `${available} vrij` : 'VOL'}
-                                </div>
-                                <div class="print-capacity-total">
-                                    ${slot.booked}/${slot.capacity} geboekt
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                printHTML += `
-                        </div>
-                    </div>
-                `;
-            });
-            
-            // Add footer
-            const totalCapacity = timeSlots.reduce((sum, slot) => sum + slot.capacity, 0);
-            const totalBooked = timeSlots.reduce((sum, slot) => sum + slot.booked, 0);
-            const totalAvailable = totalCapacity - totalBooked;
-            
-            printHTML += `
-                    <div class="print-footer">
-                        <p><strong>Totaal overzicht:</strong> ${totalBooked}/${totalCapacity} plekken geboekt (⋅ ${totalAvailable} beschikbaar)</p>
-                        <p>Voor meer informatie en boekingen: zie online planning systeem</p>
-                        <p><em>De Puzzel - Halloween 2025 Vrijwilligersplanning</em></p>
-                    </div>
-                </body>
-                </html>
-            `;
-            
-            // Write to print window and print
-            printWindow.document.write(printHTML);
-            printWindow.document.close();
-            
-            // Wait for content to load, then print
-            printWindow.onload = function() {
-                setTimeout(() => {
-                    printWindow.focus();
-                    printWindow.print();
-                    // Close window after printing (user can cancel)
-                    setTimeout(() => {
-                        if (!printWindow.closed) {
-                            printWindow.close();
-                        }
-                    }, 1000);
-                }, 500);
-            };
-            
-            showSuccess('🖨️ Print venster geopend - planning klaar voor afdrukken!');
-        }
+
 
         // Print Schedule Export
         function exportScheduleToPrint() {
-            // Create print content
             const printContent = generatePrintableSchedule();
-            
-            // Open new window for printing
-            const printWindow = window.open('', '_blank', 'width=800,height=600');
-            printWindow.document.open();
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Halloween 2025 - Vrijwilligers Planning</title>
-                    <style>
-                        @page {
-                            size: A4 landscape;
-                            margin: 1cm;
-                        }
-                        
-                        body {
-                            font-family: Arial, sans-serif;
-                            font-size: 11px;
-                            line-height: 1.3;
-                            color: #000;
-                            margin: 0;
-                            padding: 0;
-                        }
-                        
-                        .print-header {
-                            text-align: center;
-                            margin-bottom: 15px;
-                            padding-bottom: 10px;
-                            border-bottom: 2px solid #16a34a;
-                        }
-                        
-                        .print-header h1 {
-                            font-size: 18px;
-                            margin: 0 0 5px 0;
-                            color: #16a34a;
-                        }
-                        
-                        .print-header .subtitle {
-                            font-size: 12px;
-                            color: #666;
-                            margin: 0;
-                        }
-                        
-                        .print-date-section {
-                            page-break-inside: avoid;
-                            margin-bottom: 20px;
-                        }
-                        
-                        .print-date-header {
-                            background: #16a34a;
-                            color: white;
-                            padding: 8px 12px;
-                            font-size: 14px;
-                            font-weight: bold;
-                            margin-bottom: 8px;
-                        }
-                        
-                        .print-schedule-table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-bottom: 15px;
-                            font-size: 10px;
-                        }
-                        
-                        .print-schedule-table th {
-                            background: #f0f9f4;
-                            border: 1px solid #d1d5db;
-                            padding: 6px 8px;
-                            text-align: left;
-                            font-weight: bold;
-                            font-size: 10px;
-                        }
-                        
-                        .print-schedule-table td {
-                            border: 1px solid #d1d5db;
-                            padding: 5px 8px;
-                            vertical-align: top;
-                        }
-                        
-                        .function-name {
-                            font-weight: bold;
-                            color: #16a34a;
-                        }
-                        
-                        .time-slot {
-                            font-weight: 600;
-                        }
-                        
-                        .capacity-info {
-                            font-size: 9px;
-                            color: #666;
-                        }
-                        
-                        .volunteer-name {
-                            display: block;
-                            margin-bottom: 3px;
-                            font-size: 9px;
-                            padding: 2px 0;
-                        }
-                        
-                        .volunteer-name:last-child {
-                            margin-bottom: 0;
-                        }
-                        
-                        .no-volunteers {
-                            color: #ef4444;
-                            font-style: italic;
-                            font-size: 9px;
-                            padding: 2px 0;
-                        }
-                        
-                        .function-section {
-                            page-break-inside: avoid;
-                            margin-bottom: 20px;
-                            border: 1px solid #e5e7eb;
-                            border-radius: 6px;
-                            padding: 0;
-                            overflow: hidden;
-                        }
-                        
-                        .function-header {
-                            border-radius: 4px;
-                            margin-bottom: 8px;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        }
-                        
-                        .print-footer {
-                            margin-top: 20px;
-                            padding-top: 10px;
-                            border-top: 1px solid #d1d5db;
-                            font-size: 9px;
-                            color: #666;
-                            text-align: center;
-                        }
-                        
-                        .stats-summary {
-                            display: flex;
-                            justify-content: space-around;
-                            margin-bottom: 15px;
-                            font-size: 10px;
-                        }
-                        
-                        .stat-item {
-                            text-align: center;
-                            padding: 5px;
-                        }
-                        
-                        .stat-number {
-                            font-size: 14px;
-                            font-weight: bold;
-                            color: #16a34a;
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${printContent}
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            
-            // Wait for content to load, then print
-            printWindow.onload = function() {
-                setTimeout(() => {
-                    printWindow.print();
-                    printWindow.close();
-                }, 100);
-            };
+
+            const printHTML = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>${currentEvent ? currentEvent.name : "Planning"} - De Puzzel</title>
+<style>
+  @page { size: A4 landscape; margin: 1.5cm 2cm; }
+  html, body { margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 11px; line-height: 1.3; color: #000; background: white; }
+  .print-header { text-align: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #16a34a; }
+  .print-header h1 { font-size: 15px; margin: 0 0 3px 0; color: #16a34a; }
+  .print-header .subtitle { font-size: 10px; color: #666; margin: 0; }
+  .stats-summary { display: flex; justify-content: space-around; margin-bottom: 10px; font-size: 10px; background: #f9fafb; padding: 5px 0; border-radius: 4px; }
+  .stat-item { text-align: center; padding: 3px 8px; }
+  .stat-number { font-size: 13px; font-weight: bold; color: #16a34a; }
+  .print-date-section { page-break-inside: avoid; margin-bottom: 20px; }
+  .print-date-header { background: #16a34a; color: white; padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 4px 4px 0 0; margin: 0; }
+  .function-section { margin-bottom: 15px; }
+  .function-header { border-radius: 4px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  th { background: #f3f4f6; padding: 5px 8px; text-align: left; border-bottom: 1px solid #d1d5db; }
+  td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; }
+  .print-footer { margin-top: 15px; padding-top: 8px; border-top: 1px solid #d1d5db; font-size: 9px; color: #666; text-align: center; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body>${printContent}</body>
+</html>`;
+
+            // Blob URL vermijdt de lege eerste pagina van window.open('','_blank')
+            const blob = new Blob([printHTML], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const printWindow = window.open(url, '_blank');
+
+            if (!printWindow) {
+                showError('Popups zijn geblokkeerd. Sta popups toe voor deze site.');
+                URL.revokeObjectURL(url);
+                return;
+            }
+
+            // setTimeout ipv onload - betrouwbaarder voor Blob URLs
+            setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+            }, 600);
+
+            showSuccess('🖨️ Print venster geopend!');
         }
-        
-        function generatePrintableSchedule() {
+
+                function generatePrintableSchedule() {
             const slotsByDate = {};
             
             // Group slots by date
@@ -4444,7 +3977,7 @@
             
             let html = `
                 <div class="print-header">
-                    <h1>🎃 Halloween 2025 - Vrijwilligers Planning</h1>
+                    <h1>${currentEvent ? (currentEvent.icon || "") + " " + currentEvent.name + " - Vrijwilligers Planning" : "Vrijwilligers Planning"}</h1>
                     <p class="subtitle">De Puzzel • Gegenereerd op ${new Date().toLocaleDateString('nl-NL')} om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 
@@ -4580,7 +4113,7 @@
                         <div><strong>Totaal:</strong> ${totalActualBooked}/${totalCapacity} vrijwilligers (${fillRate}% bezet)</div>
                     </div>
                     <p style="text-align: center; font-weight: bold;">📋 Gebruik deze planning om vrijwilligers in te delen tijdens het evenement</p>
-                    <p style="text-align: center; font-size: 8px; color: #666;">Voor wijzigingen: ga naar de online planning • Halloween 2025 - De Puzzel</p>
+                    <p style="text-align: center; font-size: 8px; color: #666;">Voor wijzigingen: ga naar de online planning • ${currentEvent ? currentEvent.name : "Vrijwilligersplanning"} - De Puzzel</p>
                 </div>
             `;
             
@@ -5074,7 +4607,7 @@
             }
         });
 
-        console.log('🎃 Halloween 2025 Volunteer Planning System Ready!');
+        console.log('✅ Puzzelaars Vrijwilligersplanning klaar!');
     </script>
 
     <!-- Footer -->
