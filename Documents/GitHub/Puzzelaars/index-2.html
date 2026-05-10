@@ -2990,24 +2990,70 @@
             container.style.display = 'grid';
             const statusLabel = { open: '🟢 Open voor inschrijving', upcoming: '🔵 Binnenkort', closed: '🔴 Gesloten' };
             const statusStyle = { open: 'color:#16a34a;', upcoming: 'color:#0891b2;', closed: 'color:#dc2626;' };
+            const today = new Date(); today.setHours(0,0,0,0);
             container.innerHTML = visibleEvents.map(evt => {
                 const gradient = evt.gradient || 'linear-gradient(135deg, #16a34a, #22c55e)';
                 const isOpen = evt.status === 'open';
+                // Controleer of evaluatie beschikbaar is
+                const evalDate = evt.evaluationOpenDate ? new Date(evt.evaluationOpenDate + 'T00:00:00') : null;
+                const evalOpen = evalDate && today >= evalDate;
+                const showEvalBtn = evalOpen && !isOpen; // Evalueren tonen als event gesloten is maar eval open
+                const cardClickable = isOpen || showEvalBtn;
                 return `
-                    <div onclick="${isOpen ? `selectEvent('${evt.id}')` : ''}" style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);border:2px solid ${isOpen ? (evt.color||'#16a34a')+'40':'#e5e7eb'};cursor:${isOpen?'pointer':'default'};transition:all 0.3s ease;opacity:${isOpen?'1':'0.7'};">
+                    <div style="background:white;border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);border:2px solid ${isOpen ? (evt.color||'#16a34a')+'40': showEvalBtn ? '#f59e0b40' : '#e5e7eb'};cursor:${cardClickable?'pointer':'default'};transition:all 0.3s ease;opacity:${cardClickable?'1':'0.75'};"
+                         ${isOpen ? `onclick="selectEvent('${evt.id}')"` : showEvalBtn ? `onclick="openEvaluation('${evt.id}')"` : ''}>
                         <div style="background:${gradient};padding:25px 20px;text-align:center;">
                             <div style="font-size:2.5rem;margin-bottom:8px;">${evt.icon||'📋'}</div>
-                            <h3 style="color:white;font-family:'Poppins',sans-serif;font-size:1.2rem;font-weight:700;">${evt.name}</h3>
+                            <h3 style="color:white;font-family:'Nunito',sans-serif;font-size:1.2rem;font-weight:800;">${evt.name}</h3>
                         </div>
                         <div style="padding:20px;">
-                            <p style="color:#6b7280;font-size:0.9rem;margin-bottom:12px;">${evt.description||''}</p>
-                            ${evt.startDate ? `<p style="font-size:0.85rem;color:#374151;margin-bottom:8px;">📅 ${formatDateRange(evt.startDate,evt.endDate)}</p>` : ''}
+                            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:12px;">${evt.description||''}</p>
+                            ${evt.startDate ? `<p style="font-size:0.85rem;color:var(--text);margin-bottom:8px;">📅 ${formatDateRange(evt.startDate,evt.endDate)}</p>` : ''}
                             <p style="font-size:0.85rem;font-weight:600;${statusStyle[evt.status]||''}">${statusLabel[evt.status]||''}</p>
-                            ${isOpen ? `<button style="margin-top:15px;width:100%;padding:10px;background:${gradient};color:white;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.9rem;">Inschrijven →</button>` : ''}
+                            ${isOpen ? `
+                            <button onclick="event.stopPropagation();selectEvent('${evt.id}')" style="margin-top:15px;width:100%;padding:10px;background:${gradient};color:white;border:none;border-radius:100px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;font-size:0.9rem;">
+                                Inschrijven →
+                            </button>` : showEvalBtn ? `
+                            <button onclick="event.stopPropagation();openEvaluation('${evt.id}')" style="margin-top:15px;width:100%;padding:10px;background:linear-gradient(135deg,#d97706,#f59e0b);color:white;border:none;border-radius:100px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;font-size:0.9rem;">
+                                ⭐ Evalueren →
+                            </button>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        // Open evaluatietab direct voor een event
+        async function openEvaluation(eventId) {
+            const evt = events.find(e => e.id === eventId);
+            if (!evt) return;
+            currentEventId = eventId;
+            currentEvent = evt;
+            try {
+                showLoading(true);
+                await loadDataFromFirebase();
+                initializeUI();
+                showLoading(false);
+                document.getElementById('headerBannerWrap').style.display = 'none';
+                document.getElementById('eventHeaderInfo').style.display = 'block';
+                document.getElementById('eventHeaderTitle').textContent = (evt.icon||'') + ' ' + evt.name;
+                document.getElementById('eventHeaderDates').textContent = formatDateRange(evt.startDate, evt.endDate);
+                document.getElementById('eventHeaderTitle').style.color = evt.color || 'var(--primary-color)';
+                document.getElementById('eventBreadcrumb').style.display = 'block';
+                document.getElementById('portalScreen').style.display = 'none';
+                document.getElementById('mainNavTabs').style.display = 'flex';
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                // Ga direct naar evaluatietab
+                document.getElementById('evaluationTab').classList.add('active');
+                document.querySelector('.tab-btn[onclick*="evaluation"]').classList.add('active');
+                document.getElementById('evaluationTabTitle').textContent = evt.name + ' Evaluatie';
+                document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate || 'na het evenement';
+                checkEvaluationAvailability();
+            } catch(err) {
+                showLoading(false);
+                showError('Fout bij het laden van evenementdata');
+            }
         }
 
         function formatDateRange(start, end) {
