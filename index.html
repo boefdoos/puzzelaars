@@ -2955,6 +2955,9 @@
             document.getElementById('portalScreen').style.display = 'block';
             document.getElementById('mainNavTabs').style.display = 'none';
             document.getElementById('adminTabBtn').style.display = 'none';
+            // Reset boeken tab zichtbaarheid voor volgend event
+            const boekenReset = document.querySelector('.tab-btn[onclick*="client"]');
+            if (boekenReset) boekenReset.style.display = '';
             document.getElementById('clientTab').classList.remove('active');
             document.getElementById('evaluationTab').classList.remove('active');
             document.getElementById('adminTab').classList.remove('active');
@@ -3069,6 +3072,10 @@
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 // Ga direct naar evaluatietab
+                // Verberg boeken tab want event is voorbij
+                const boekenBtnEval = document.querySelector('.tab-btn[onclick*="client"]');
+                if (boekenBtnEval) boekenBtnEval.style.display = 'none';
+
                 document.getElementById('evaluationTab').classList.add('active');
                 document.querySelector('.tab-btn[onclick*="evaluation"]').classList.add('active');
                 document.getElementById('evaluationTabTitle').textContent = evt.name + ' Evaluatie';
@@ -3121,13 +3128,24 @@
                 document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate
                     || (evtDayAfter ? evtDayAfter.toLocaleDateString('nl-NL', {day:'numeric',month:'long',year:'numeric'}) : 'na het evenement');
 
+                const boekenTab = document.querySelector('.tab-btn[onclick*="client"]');
+                const boekenContent = document.getElementById('clientTab');
+
+                if (evtAutoClose) {
+                    // Event voorbij: verberg boeken tab
+                    if (boekenTab) boekenTab.style.display = 'none';
+                } else {
+                    // Event nog open: toon boeken tab
+                    if (boekenTab) boekenTab.style.display = '';
+                }
+
                 if (evtAutoClose && evtEvalOpen) {
                     // Event voorbij + evaluatie open: ga direct naar evaluatietab
                     document.getElementById('evaluationTab').classList.add('active');
                     document.querySelector('.tab-btn[onclick*="evaluation"]').classList.add('active');
                 } else {
                     document.getElementById('clientTab').classList.add('active');
-                    document.querySelector('.tab-btn[onclick*="client"]').classList.add('active');
+                    if (boekenTab) boekenTab.classList.add('active');
                 }
                 checkEvaluationAvailability();
             } catch(err) {
