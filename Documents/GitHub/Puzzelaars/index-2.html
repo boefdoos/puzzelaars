@@ -1970,8 +1970,8 @@
                                 🕐 ${startTime} – ${endTime}
                             </span>
                         </div>
-                        <!-- Kaartjes per functie -->
-                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">`;
+                        <!-- Kaartjes per functie: naast elkaar, scroll als nodig -->
+                        <div style="display:flex;flex-wrap:wrap;gap:12px;">`;
 
                     slots.forEach(slot => {
                         const func = functions.find(f => f.id === slot.functionId);
@@ -1982,7 +1982,7 @@
 
                         html += `<div
                             ${isAvailable ? `data-slot-id="${slot.id}"` : ''}
-                            style="background:white;border-radius:var(--radius-md);border:2px solid ${isAvailable ? color.primary + '35' : '#f0f0f0'};padding:16px;cursor:${isAvailable ? 'pointer' : 'default'};transition:all 0.2s ease;position:relative;overflow:hidden;${isAvailable ? '' : 'opacity:0.55;'}"
+                            style="background:white;border-radius:var(--radius-md);border:2px solid ${isAvailable ? color.primary + '35' : '#f0f0f0'};padding:16px;cursor:${isAvailable ? 'pointer' : 'default'};transition:all 0.2s ease;position:relative;overflow:hidden;${isAvailable ? '' : 'opacity:0.55;'};flex:1 1 180px;min-width:160px;max-width:260px;"
                             ${isAvailable ? `onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px ${color.primary}25';this.style.borderColor='${color.primary}'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='${color.primary}35'"` : ''}>
 
                             <!-- Gekleurde topbalk -->
