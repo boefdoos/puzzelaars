@@ -2147,8 +2147,9 @@
                 }
                 return; // Voorkom dubbele afhandeling hieronder
             }
+        }
 
-                    function showBookingSuccess(booking) {
+        function showBookingSuccess(booking) {
             const func = functions.find(f => f.id === booking.functionId);
             const successContent = document.getElementById('successContent');
             
