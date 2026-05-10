@@ -16,7 +16,7 @@
     <!-- Firebase v9 SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where, runTransaction } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -45,6 +45,7 @@
         window.query = query;
         window.orderBy = orderBy;
         window.where = where;
+        window.runTransaction = runTransaction;
 
         console.log('✅ Firebase initialized successfully');
 
@@ -2054,93 +2055,100 @@
             };
 
             try {
-                // Save booking to Firebase
-                await window.addDoc(window.collection(window.db, 'bookings'), formData);
-                
-                // Try to update time slot in Firebase
+                // Gebruik Firestore transaction om race conditions te voorkomen
+                // (voorkomt dat twee mensen tegelijk dezelfde laatste plek boeken)
                 let firebaseSlotId = currentBookingSlot.firebaseId;
-                
-                // If no direct firebaseId, search for it
+
                 if (!firebaseSlotId) {
+                    // Zoek het Firebase document ID op
                     const timeSlotsSnapshot = await window.getDocs(window.collection(window.db, 'timeSlots'));
-                    
-                    timeSlotsSnapshot.docs.forEach(doc => {
-                        const data = doc.data();
-                        // Match by all slot properties to find the correct document
+                    timeSlotsSnapshot.docs.forEach(d => {
+                        const data = d.data();
                         if (data.functionId === currentBookingSlot.functionId &&
                             data.date === currentBookingSlot.date &&
                             data.startTime === currentBookingSlot.startTime &&
-                            data.endTime === currentBookingSlot.endTime &&
-                            data.capacity === currentBookingSlot.capacity) {
-                            firebaseSlotId = doc.id;
+                            data.endTime === currentBookingSlot.endTime) {
+                            firebaseSlotId = d.id;
                         }
                     });
                 }
-                
-                // Update time slot if Firebase ID found
-                if (firebaseSlotId) {
-                    try {
-                        const slotRef = window.doc(window.db, 'timeSlots', firebaseSlotId);
-                        await window.updateDoc(slotRef, {
-                            booked: currentBookingSlot.booked + 1,
-                            volunteers: [...(currentBookingSlot.volunteers || []), {
-                                name: formData.name,
-                                email: formData.email,
-                                phone: formData.phone
-                            }]
-                        });
-                        console.log('✅ Timeslot updated in Firebase with ID:', firebaseSlotId);
-                    } catch (updateError) {
-                        console.error('❌ Error updating timeslot in Firebase:', updateError);
-                        // Continue with local data update even if Firebase fails
-                    }
-                } else {
-                    console.warn('⚠️ Firebase timeslot not found, updating local data only');
-                    console.log('Looking for slot:', {
-                        functionId: currentBookingSlot.functionId,
-                        date: currentBookingSlot.date,
-                        startTime: currentBookingSlot.startTime,
-                        endTime: currentBookingSlot.endTime,
-                        capacity: currentBookingSlot.capacity
-                    });
+
+                if (!firebaseSlotId) {
+                    throw new Error('Tijdslot niet gevonden in database');
                 }
 
-                // Send confirmation email
-                await sendConfirmationEmail(formData);
-                
-                // Update local data
-                currentBookingSlot.booked += 1;
+                // Atomische transaction: controleer capaciteit EN sla boeking op
+                const slotRef = window.doc(window.db, 'timeSlots', firebaseSlotId);
+                let bookingSuccessful = false;
+
+                await window.runTransaction(window.db, async (transaction) => {
+                    const slotDoc = await transaction.get(slotRef);
+                    if (!slotDoc.exists()) throw new Error('Tijdslot bestaat niet meer');
+
+                    const slotData = slotDoc.data();
+                    const currentBooked = slotData.booked || 0;
+                    const capacity = slotData.capacity || 0;
+
+                    // Controleer opnieuw of er nog plek is (atomisch!)
+                    if (currentBooked >= capacity) {
+                        throw new Error('VOL: Dit tijdslot is net volzet door een andere boeking.');
+                    }
+
+                    // Update het slot atomisch
+                    transaction.update(slotRef, {
+                        booked: currentBooked + 1,
+                        volunteers: [...(slotData.volunteers || []), {
+                            name: formData.name,
+                            email: formData.email,
+                            phone: formData.phone
+                        }]
+                    });
+
+                    bookingSuccessful = true;
+                });
+
+                // Transaction gelukt - sla de boeking op
+                await window.addDoc(window.collection(window.db, 'bookings'), formData);
+                console.log('✅ Boeking opgeslagen via transaction');
+
+                // Update lokale staat
+                currentBookingSlot.booked = (currentBookingSlot.booked || 0) + 1;
                 if (!currentBookingSlot.volunteers) currentBookingSlot.volunteers = [];
                 currentBookingSlot.volunteers.push({
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone
                 });
-                bookings.push(formData);
+                bookings.push({ ...formData, id: Date.now().toString() });
+
+                // Herlaad slots vanuit Firebase voor accurate telling
+                const freshSlots = await window.getDocs(window.collection(window.db, 'timeSlots'));
+                timeSlots = freshSlots.docs.map(d => ({ firebaseId: d.id, id: d.data().id || d.id, ...d.data() }));
+                if (currentEventId) timeSlots = timeSlots.filter(x => x.eventId === currentEventId);
 
                 closeModal('bookingModal');
                 showBookingSuccess(formData);
                 renderSchedule();
-                
-                // Re-enable button (for next booking)
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalButtonText;
-                submitButton.style.opacity = '1';
-                submitButton.style.cursor = 'pointer';
-                
-            } catch (error) {
-                console.error('❌ Error saving booking:', error);
-                showError('Fout bij het opslaan van de boeking');
-                
-                // Re-enable button on error
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalButtonText;
-                submitButton.style.opacity = '1';
-                submitButton.style.cursor = 'pointer';
-            }
-        }
+                updatePriorityFunctions && updatePriorityFunctions();
 
-        function showBookingSuccess(booking) {
+            } catch (error) {
+                console.error('❌ Boekingsfout:', error);
+                // Reset knop
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
+
+                if (error.message && error.message.startsWith('VOL:')) {
+                    showError('Dit tijdslot is net volzet. Kies een ander tijdslot.');
+                    renderSchedule(); // Ververs het scherm
+                } else {
+                    showError('Fout bij het opslaan van de boeking. Probeer opnieuw.');
+                }
+                return; // Voorkom dubbele afhandeling hieronder
+            }
+
+                    function showBookingSuccess(booking) {
             const func = functions.find(f => f.id === booking.functionId);
             const successContent = document.getElementById('successContent');
             
