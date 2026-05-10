@@ -2204,10 +2204,17 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Gebruik evaluationOpenDate van het geselecteerde event, anders altijd open
+            // Gebruik evaluationOpenDate van het geselecteerde event
+            // Standaard: dag na het event als geen datum ingesteld
             let evaluationDate = null;
-            if (currentEvent && currentEvent.evaluationOpenDate) {
-                evaluationDate = new Date(currentEvent.evaluationOpenDate + 'T00:00:00');
+            if (currentEvent) {
+                if (currentEvent.evaluationOpenDate) {
+                    evaluationDate = new Date(currentEvent.evaluationOpenDate + 'T00:00:00');
+                } else if (currentEvent.endDate) {
+                    // Standaard: dag na einddatum
+                    const end = new Date(currentEvent.endDate + 'T00:00:00');
+                    evaluationDate = new Date(end.getTime() + 86400000);
+                }
             }
 
             const isOpen = !evaluationDate || today >= evaluationDate;
@@ -2993,11 +3000,28 @@
             const today = new Date(); today.setHours(0,0,0,0);
             container.innerHTML = visibleEvents.map(evt => {
                 const gradient = evt.gradient || 'linear-gradient(135deg, #16a34a, #22c55e)';
-                const isOpen = evt.status === 'open';
-                // Controleer of evaluatie beschikbaar is
-                const evalDate = evt.evaluationOpenDate ? new Date(evt.evaluationOpenDate + 'T00:00:00') : null;
-                const evalOpen = evalDate && today >= evalDate;
-                const showEvalBtn = evalOpen && !isOpen; // Evalueren tonen als event gesloten is maar eval open
+
+                // Automatische statusberekening op basis van einddatum
+                const endDate = evt.endDate ? new Date(evt.endDate + 'T00:00:00') : null;
+                const dayAfterEnd = endDate ? new Date(endDate.getTime() + 86400000) : null;
+
+                // Automatisch sluiten: dag na het event
+                let effectiveStatus = evt.status;
+                if (dayAfterEnd && today >= dayAfterEnd && evt.status === 'open') {
+                    effectiveStatus = 'closed';
+                }
+
+                // Automatische evaluatiedatum: dag na het event (als niet expliciet ingesteld)
+                let effectiveEvalDate = null;
+                if (evt.evaluationOpenDate) {
+                    effectiveEvalDate = new Date(evt.evaluationOpenDate + 'T00:00:00');
+                } else if (dayAfterEnd) {
+                    effectiveEvalDate = dayAfterEnd; // standaard: dag na event
+                }
+
+                const isOpen = effectiveStatus === 'open';
+                const evalOpen = effectiveEvalDate && today >= effectiveEvalDate;
+                const showEvalBtn = evalOpen && !isOpen;
                 const cardClickable = isOpen || showEvalBtn;
                 return `
                     <div style="background:white;border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);border:2px solid ${isOpen ? (evt.color||'#16a34a')+'40': showEvalBtn ? '#f59e0b40' : '#e5e7eb'};cursor:${cardClickable?'pointer':'default'};transition:all 0.3s ease;opacity:${cardClickable?'1':'0.75'};"
@@ -3009,7 +3033,7 @@
                         <div style="padding:20px;">
                             <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:12px;">${evt.description||''}</p>
                             ${evt.startDate ? `<p style="font-size:0.85rem;color:var(--text);margin-bottom:8px;">📅 ${formatDateRange(evt.startDate,evt.endDate)}</p>` : ''}
-                            <p style="font-size:0.85rem;font-weight:600;${statusStyle[evt.status]||''}">${statusLabel[evt.status]||''}</p>
+                            <p style="font-size:0.85rem;font-weight:600;${statusStyle[effectiveStatus]||''}">${statusLabel[effectiveStatus]||''}</p>
                             ${isOpen ? `
                             <button onclick="event.stopPropagation();selectEvent('${evt.id}')" style="margin-top:15px;width:100%;padding:10px;background:${gradient};color:white;border:none;border-radius:100px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;font-size:0.9rem;">
                                 Inschrijven →
@@ -3084,10 +3108,27 @@
                 document.getElementById('mainNavTabs').style.display = 'flex';
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('clientTab').classList.add('active');
-                document.querySelector('.tab-btn[onclick*="client"]').classList.add('active');
+                // Bepaal automatische evaluatiedatum
+                const evtEndDate = evt.endDate ? new Date(evt.endDate + 'T00:00:00') : null;
+                const evtDayAfter = evtEndDate ? new Date(evtEndDate.getTime() + 86400000) : null;
+                const evtEvalDate = evt.evaluationOpenDate
+                    ? new Date(evt.evaluationOpenDate + 'T00:00:00')
+                    : evtDayAfter;
+                const evtEvalOpen = evtEvalDate && new Date() >= evtEvalDate;
+                const evtAutoClose = evtDayAfter && new Date() >= evtDayAfter && evt.status === 'open';
+
                 document.getElementById('evaluationTabTitle').textContent = evt.name + ' Evaluatie';
-                document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate || 'na het evenement';
+                document.getElementById('evaluationOpenDate').textContent = evt.evaluationOpenDate
+                    || (evtDayAfter ? evtDayAfter.toLocaleDateString('nl-NL', {day:'numeric',month:'long',year:'numeric'}) : 'na het evenement');
+
+                if (evtAutoClose && evtEvalOpen) {
+                    // Event voorbij + evaluatie open: ga direct naar evaluatietab
+                    document.getElementById('evaluationTab').classList.add('active');
+                    document.querySelector('.tab-btn[onclick*="evaluation"]').classList.add('active');
+                } else {
+                    document.getElementById('clientTab').classList.add('active');
+                    document.querySelector('.tab-btn[onclick*="client"]').classList.add('active');
+                }
                 checkEvaluationAvailability();
             } catch(err) {
                 showLoading(false);
