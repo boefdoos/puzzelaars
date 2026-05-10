@@ -2202,17 +2202,29 @@
         // Evaluation Section
         function checkEvaluationAvailability() {
             const today = new Date();
-            const evaluationDate = new Date('2025-10-18');
-            
-            if (today >= evaluationDate) {
+            today.setHours(0, 0, 0, 0);
+
+            // Gebruik evaluationOpenDate van het geselecteerde event, anders altijd open
+            let evaluationDate = null;
+            if (currentEvent && currentEvent.evaluationOpenDate) {
+                evaluationDate = new Date(currentEvent.evaluationOpenDate + 'T00:00:00');
+            }
+
+            const isOpen = !evaluationDate || today >= evaluationDate;
+
+            if (isOpen) {
                 document.getElementById('evaluationForm').style.display = 'block';
                 document.getElementById('evaluationClosed').style.display = 'none';
-                
-                // Generate dynamic form based on evaluation questions
                 generateDynamicEvaluationForm();
             } else {
                 document.getElementById('evaluationForm').style.display = 'none';
                 document.getElementById('evaluationClosed').style.display = 'block';
+                // Toon de correcte datum in de gesloten melding
+                const openDateEl = document.getElementById('evaluationOpenDate');
+                if (openDateEl && currentEvent.evaluationOpenDate) {
+                    const d = new Date(currentEvent.evaluationOpenDate + 'T00:00:00');
+                    openDateEl.textContent = d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+                }
             }
         }
         
