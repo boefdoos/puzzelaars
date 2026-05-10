@@ -4147,6 +4147,7 @@
             const exampleQuestions = [
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'text',
                     fieldName: 'volunteerName',
                     label: 'Je naam (optioneel)',
@@ -4156,6 +4157,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'select',
                     fieldName: 'volunteerFunction',
                     label: 'Voor welke functie was je vrijwilliger?',
@@ -4165,6 +4167,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'rating',
                     fieldName: 'organizationRating',
                     label: 'Hoe beoordeel je de algemene organisatie?',
@@ -4175,6 +4178,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'rating',
                     fieldName: 'communicationRating',
                     label: 'Hoe beoordeel je de communicatie vooraf?',
@@ -4185,6 +4189,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'rating',
                     fieldName: 'supportRating',
                     label: 'Hoe goed voelde je je ondersteund tijdens het evenement?',
@@ -4195,6 +4200,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'textarea',
                     fieldName: 'positiveAspects',
                     label: 'Wat ging er goed? (positieve punten)',
@@ -4204,6 +4210,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'textarea',
                     fieldName: 'improvementSuggestions',
                     label: 'Wat kan er beter? (verbeterpunten)',
@@ -4213,6 +4220,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'select',
                     fieldName: 'volunteerAgainNextYear',
                     label: 'Wil je volgend jaar weer vrijwilliger zijn?',
@@ -4229,6 +4237,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'select',
                     fieldName: 'recommendToOthers',
                     label: 'Zou je vrijwilligerswerk bij De Puzzel aanbevelen aan anderen?',
@@ -4245,6 +4254,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'textarea',
                     fieldName: 'additionalComments',
                     label: 'Overige opmerkingen of suggesties',
@@ -4254,6 +4264,7 @@
                 },
                 {
                     id: generateId(),
+                            eventId: currentEventId || null,
                     type: 'select',
                     fieldName: 'contactPermission',
                     label: 'Mogen we je contacteren voor toekomstige vrijwilligersactiviteiten?',
@@ -4282,7 +4293,7 @@
                 showSuccess(`✅ Voorbeeld evaluatieformulier geladen met ${exampleQuestions.length} vragen!`);
                 
                 // Refresh UI
-                showAdminSection('evaluation-form');
+                showAdminSectionDirect('evaluation-form');
                 updateEvaluationTab();
                 
             } catch (error) {
@@ -4371,7 +4382,7 @@
                 showSuccess('Evaluatievraag succesvol verwijderd');
                 
                 // Refresh UI
-                showAdminSection('evaluation-form');
+                showAdminSectionDirect('evaluation-form');
                 
             } catch (error) {
                 console.error('Error deleting evaluation question:', error);
@@ -4467,6 +4478,7 @@
                 } else {
                     // Add new question
                     questionData.id = generateId();
+                    questionData.eventId = currentEventId || null;
                     
                     // Save to Firebase
                     const docRef = await window.addDoc(window.collection(window.db, 'evaluationQuestions'), questionData);
@@ -4483,7 +4495,7 @@
                 
                 // Refresh UI
                 closeModal('evaluationQuestionModal');
-                showAdminSection('evaluation-form');
+                showAdminSectionDirect('evaluation-form');
                 
                 // Also refresh the evaluation tab if it uses dynamic questions
                 updateEvaluationTab();
