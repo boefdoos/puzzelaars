@@ -1914,8 +1914,7 @@
 
         // Overview function removed - only calendar view now
 
-                function renderCalendarSchedule(container) {
-            // Tijdlijn-weergave: gegroepeerd per dag → per tijdslot → functies naast elkaar
+                        function renderCalendarSchedule(container) {
             const slotsByDate = {};
             timeSlots.forEach(slot => {
                 if (selectedFunction !== 'all' && slot.functionId !== selectedFunction) return;
@@ -1931,12 +1930,12 @@
                 return;
             }
 
-            let html = '<div style="display:grid;gap:24px;">';
+            let html = '<div style="display:grid;gap:28px;">';
 
             Object.keys(slotsByDate).sort().forEach(date => {
                 const dateSlots = slotsByDate[date];
 
-                // Groepeer per tijdvak (startTime-endTime)
+                // Groepeer per tijdvak
                 const byTimeslot = {};
                 dateSlots.sort((a,b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
                     const key = slot.startTime + '-' + slot.endTime;
@@ -1944,53 +1943,72 @@
                     byTimeslot[key].slots.push(slot);
                 });
 
-                const timeslotKeys = Object.keys(byTimeslot).sort();
                 const totalAvailable = dateSlots.reduce((s, sl) => s + Math.max(0, (sl.capacity||0) - (sl.booked||0)), 0);
 
-                html += `<div class="card" style="padding:0;overflow:hidden;">
-                    <div style="background:var(--primary);padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                        <h3 style="color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.1rem;margin:0;">📅 ${formatDate(date)}</h3>
-                        <span style="background:rgba(255,255,255,0.2);color:white;font-size:0.8rem;font-weight:700;padding:4px 12px;border-radius:100px;">
-                            ${totalAvailable} ${totalAvailable === 1 ? 'plek' : 'plekken'} vrij
+                html += `<div>
+                    <!-- Dag header -->
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                        <div style="height:3px;width:32px;background:var(--primary);border-radius:2px;flex-shrink:0;"></div>
+                        <h3 style="font-family:'Nunito',sans-serif;font-weight:900;font-size:1.15rem;color:var(--text);margin:0;">
+                            ${formatDate(date)}
+                        </h3>
+                        <div style="height:1px;flex:1;background:var(--border);"></div>
+                        <span style="font-size:0.78rem;font-weight:700;color:${totalAvailable > 0 ? 'var(--primary)' : 'var(--text-muted)'};white-space:nowrap;">
+                            ${totalAvailable} vrij
                         </span>
                     </div>
-                    <div style="padding:16px 20px;display:grid;gap:12px;">`;
+                    <!-- Tijdvakken -->
+                    <div style="display:grid;gap:16px;">`;
 
-                timeslotKeys.forEach(key => {
-                    const { startTime, endTime, slots } = byTimeslot[key];
+                Object.values(byTimeslot).forEach(({ startTime, endTime, slots }) => {
                     const anyAvailable = slots.some(s => (s.capacity||0) - (s.booked||0) > 0);
 
-                    html += `<div style="border:1.5px solid ${anyAvailable ? 'var(--border)' : '#f0f0f0'};border-radius:var(--radius-sm);overflow:hidden;${anyAvailable ? '' : 'opacity:0.65;'}">
-                        <div style="background:${anyAvailable ? '#f8faf9' : '#f9f9f9'};padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1.5px solid ${anyAvailable ? 'var(--border)' : '#f0f0f0'};">
-                            <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;color:${anyAvailable ? 'var(--primary)' : 'var(--text-muted)'};">
+                    html += `<div>
+                        <!-- Tijdlabel -->
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                            <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:0.92rem;color:${anyAvailable ? 'var(--primary-dark)' : 'var(--text-muted)'};background:${anyAvailable ? 'rgba(26,122,69,0.08)' : '#f3f4f6'};padding:4px 12px;border-radius:100px;">
                                 🕐 ${startTime} – ${endTime}
                             </span>
-                            <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">${slots.length} functie${slots.length !== 1 ? 's' : ''}</span>
                         </div>
-                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));">`;
+                        <!-- Kaartjes per functie -->
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">`;
 
-                    slots.forEach((slot, idx) => {
+                    slots.forEach(slot => {
                         const func = functions.find(f => f.id === slot.functionId);
                         const color = getFunctionColorById(slot.functionId);
                         const available = (slot.capacity||0) - (slot.booked||0);
                         const isAvailable = available > 0;
-                        const borderRight = idx < slots.length - 1 ? '1.5px solid var(--border)' : 'none';
+                        const pct = slot.capacity > 0 ? Math.round(((slot.capacity - available) / slot.capacity) * 100) : 100;
 
                         html += `<div
                             ${isAvailable ? `data-slot-id="${slot.id}"` : ''}
-                            style="padding:14px 16px;cursor:${isAvailable ? 'pointer' : 'default'};background:white;border-right:${borderRight};transition:background 0.15s;"
-                            ${isAvailable ? `onmouseover="this.style.background='${color.bg}'" onmouseout="this.style.background='white'"` : ''}>
-                            <div style="display:flex;align-items:flex-start;gap:10px;">
-                                <div style="width:10px;height:10px;border-radius:50%;background:${isAvailable ? color.primary : '#d1d5db'};flex-shrink:0;margin-top:5px;"></div>
-                                <div style="flex:1;min-width:0;">
-                                    <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:0.9rem;color:${isAvailable ? 'var(--text)' : 'var(--text-muted)'};margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                        ${func ? func.name : '?'}
-                                    </div>
-                                    <div style="display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.72rem;font-weight:700;background:${isAvailable ? color.primary + '18' : '#f3f4f6'};color:${isAvailable ? color.primary : '#9ca3af'};">
-                                        ${isAvailable ? available + '/' + slot.capacity + ' vrij' : 'Volzet'}
-                                    </div>
+                            style="background:white;border-radius:var(--radius-md);border:2px solid ${isAvailable ? color.primary + '35' : '#f0f0f0'};padding:16px;cursor:${isAvailable ? 'pointer' : 'default'};transition:all 0.2s ease;position:relative;overflow:hidden;${isAvailable ? '' : 'opacity:0.55;'}"
+                            ${isAvailable ? `onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px ${color.primary}25';this.style.borderColor='${color.primary}'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='${color.primary}35'"` : ''}>
+
+                            <!-- Gekleurde topbalk -->
+                            <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${isAvailable ? color.gradient : '#e5e7eb'};"></div>
+
+                            <div style="margin-top:4px;">
+                                <!-- Functienaam -->
+                                <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;color:${isAvailable ? 'var(--text)' : 'var(--text-muted)'};margin-bottom:6px;line-height:1.3;">
+                                    ${func ? func.name : '?'}
                                 </div>
-                                ${isAvailable ? `<span style="color:${color.primary};align-self:center;font-size:1rem;">→</span>` : ''}
+
+                                <!-- Beschrijving -->
+                                ${func && func.description ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;line-height:1.4;">${func.description}</div>` : '<div style="margin-bottom:10px;"></div>'}
+
+                                <!-- Bezettingsbalk -->
+                                <div style="background:#f0f0f0;border-radius:100px;height:5px;margin-bottom:8px;overflow:hidden;">
+                                    <div style="height:100%;width:${pct}%;background:${isAvailable ? color.gradient : '#d1d5db'};border-radius:100px;transition:width 0.3s;"></div>
+                                </div>
+
+                                <!-- Beschikbaarheid -->
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:0.78rem;font-weight:700;color:${isAvailable ? color.primary : '#9ca3af'};">
+                                        ${isAvailable ? `${available} van ${slot.capacity} vrij` : 'Volzet'}
+                                    </span>
+                                    ${isAvailable ? `<span style="font-size:0.85rem;color:${color.primary};">→</span>` : '<span style="font-size:0.85rem;">🔒</span>'}
+                                </div>
                             </div>
                         </div>`;
                     });
