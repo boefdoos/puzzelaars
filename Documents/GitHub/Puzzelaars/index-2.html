@@ -1914,72 +1914,95 @@
 
         // Overview function removed - only calendar view now
 
-        function renderCalendarSchedule(container) {
-            // Similar to overview but more compact, time-focused layout
+                function renderCalendarSchedule(container) {
+            // Tijdlijn-weergave: gegroepeerd per dag → per tijdslot → functies naast elkaar
             const slotsByDate = {};
             timeSlots.forEach(slot => {
                 if (selectedFunction !== 'all' && slot.functionId !== selectedFunction) return;
-                
-                if (!slotsByDate[slot.date]) {
-                    slotsByDate[slot.date] = [];
-                }
+                if (!slotsByDate[slot.date]) slotsByDate[slot.date] = [];
                 slotsByDate[slot.date].push(slot);
             });
 
-            let html = '<div style="display: grid; gap: 25px;">';
-            
+            if (Object.keys(slotsByDate).length === 0) {
+                container.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+                    <div style="font-size:3rem;margin-bottom:16px;">📭</div>
+                    <p>Nog geen tijdsloten beschikbaar.</p>
+                </div>`;
+                return;
+            }
+
+            let html = '<div style="display:grid;gap:24px;">';
+
             Object.keys(slotsByDate).sort().forEach(date => {
                 const dateSlots = slotsByDate[date];
-                
-                html += `
-                    <div class="card" style="padding: 20px;">
-                        <h3 style="color: var(--primary-color); margin-bottom: 20px;">${formatDate(date)}</h3>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                `;
-                
-                dateSlots.sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
-                    const func = functions.find(f => f.id === slot.functionId);
-                    const color = getFunctionColorById(slot.functionId);
-                    const available = slot.capacity - slot.booked;
-                    const isAvailable = available > 0;
-                    
-                    html += `
-                    <div class="timeslot ${isAvailable ? 'available' : 'full'}" 
-                    style="padding: 15px; border: 3px solid ${color.primary}; background: ${color.bg}; position: relative; overflow: hidden;"
-                    ${isAvailable ? `data-slot-id="${slot.id}"` : ''}>
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: ${color.gradient}; opacity: 0.15; z-index: 1;"></div>
-                    <div style="position: relative; z-index: 2;">
-                        <div style="font-weight: 700; color: ${color.primary}; margin-bottom: 8px; font-size: 1rem;">${func.name}</div>
-                        <div style="font-size: 0.9rem; margin-bottom: 8px; font-weight: 600;">${slot.startTime} - ${slot.endTime}</div>
-                        <div style="font-size: 0.8rem; color: #374151; font-weight: 500;">
-                        ${isAvailable ? `${available} van ${slot.capacity} vrij` : `Vol (${slot.capacity} plekken)`}
-                        </div>
-                    </div>
-                    </div>
-                    `;
+
+                // Groepeer per tijdvak (startTime-endTime)
+                const byTimeslot = {};
+                dateSlots.sort((a,b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
+                    const key = slot.startTime + '-' + slot.endTime;
+                    if (!byTimeslot[key]) byTimeslot[key] = { startTime: slot.startTime, endTime: slot.endTime, slots: [] };
+                    byTimeslot[key].slots.push(slot);
                 });
-                
-                html += `
-                        </div>
+
+                const timeslotKeys = Object.keys(byTimeslot).sort();
+                const totalAvailable = dateSlots.reduce((s, sl) => s + Math.max(0, (sl.capacity||0) - (sl.booked||0)), 0);
+
+                html += `<div class="card" style="padding:0;overflow:hidden;">
+                    <div style="background:var(--primary);padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                        <h3 style="color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.1rem;margin:0;">📅 ${formatDate(date)}</h3>
+                        <span style="background:rgba(255,255,255,0.2);color:white;font-size:0.8rem;font-weight:700;padding:4px 12px;border-radius:100px;">
+                            ${totalAvailable} ${totalAvailable === 1 ? 'plek' : 'plekken'} vrij
+                        </span>
                     </div>
-                `;
+                    <div style="padding:16px 20px;display:grid;gap:12px;">`;
+
+                timeslotKeys.forEach(key => {
+                    const { startTime, endTime, slots } = byTimeslot[key];
+                    const anyAvailable = slots.some(s => (s.capacity||0) - (s.booked||0) > 0);
+
+                    html += `<div style="border:1.5px solid ${anyAvailable ? 'var(--border)' : '#f0f0f0'};border-radius:var(--radius-sm);overflow:hidden;${anyAvailable ? '' : 'opacity:0.65;'}">
+                        <div style="background:${anyAvailable ? '#f8faf9' : '#f9f9f9'};padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1.5px solid ${anyAvailable ? 'var(--border)' : '#f0f0f0'};">
+                            <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;color:${anyAvailable ? 'var(--primary)' : 'var(--text-muted)'};">
+                                🕐 ${startTime} – ${endTime}
+                            </span>
+                            <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">${slots.length} functie${slots.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));">`;
+
+                    slots.forEach((slot, idx) => {
+                        const func = functions.find(f => f.id === slot.functionId);
+                        const color = getFunctionColorById(slot.functionId);
+                        const available = (slot.capacity||0) - (slot.booked||0);
+                        const isAvailable = available > 0;
+                        const borderRight = idx < slots.length - 1 ? '1.5px solid var(--border)' : 'none';
+
+                        html += `<div
+                            ${isAvailable ? `data-slot-id="${slot.id}"` : ''}
+                            style="padding:14px 16px;cursor:${isAvailable ? 'pointer' : 'default'};background:white;border-right:${borderRight};transition:background 0.15s;"
+                            ${isAvailable ? `onmouseover="this.style.background='${color.bg}'" onmouseout="this.style.background='white'"` : ''}>
+                            <div style="display:flex;align-items:flex-start;gap:10px;">
+                                <div style="width:10px;height:10px;border-radius:50%;background:${isAvailable ? color.primary : '#d1d5db'};flex-shrink:0;margin-top:5px;"></div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:0.9rem;color:${isAvailable ? 'var(--text)' : 'var(--text-muted)'};margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                        ${func ? func.name : '?'}
+                                    </div>
+                                    <div style="display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.72rem;font-weight:700;background:${isAvailable ? color.primary + '18' : '#f3f4f6'};color:${isAvailable ? color.primary : '#9ca3af'};">
+                                        ${isAvailable ? available + '/' + slot.capacity + ' vrij' : 'Volzet'}
+                                    </div>
+                                </div>
+                                ${isAvailable ? `<span style="color:${color.primary};align-self:center;font-size:1rem;">→</span>` : ''}
+                            </div>
+                        </div>`;
+                    });
+
+                    html += `</div></div>`;
+                });
+
+                html += `</div></div>`;
             });
-            
+
             html += '</div>';
             container.innerHTML = html;
-            
-            // Add event listeners for timeslot clicks
-            document.querySelectorAll('[data-slot-id]').forEach(slot => {
-                slot.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const slotId = this.getAttribute('data-slot-id');
-                    if (slotId) {
-                        openBookingModal(slotId);
-                    }
-                });
-            });
         }
 
         // Motivation section is now static in HTML
