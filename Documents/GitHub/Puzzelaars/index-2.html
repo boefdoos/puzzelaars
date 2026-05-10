@@ -2303,20 +2303,26 @@
                         break;
                         
                     case 'select':
-                        fieldHTML += `<select id="${question.fieldName}" class="form-input" ${question.required ? 'required' : ''}>`;
-                        
                         if (question.options === 'functions') {
-                            fieldHTML += '<option value="">Kies een functie...</option>';
+                            fieldHTML += `<div id="${question.fieldName}Group" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:4px;">`;
                             functions.forEach(func => {
-                                fieldHTML += `<option value="${func.id}">${func.name}</option>`;
+                                const color = getFunctionColorById(func.id);
+                                fieldHTML += `<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;background:white;">
+                                    <input type="checkbox" name="${question.fieldName}" value="${func.id}" style="width:16px;height:16px;accent-color:${color.primary};cursor:pointer;"
+                                           onchange="const l=this.closest('label');if(this.checked){l.style.borderColor='${color.primary}';l.style.background='${color.bg}';}else{l.style.borderColor='var(--border)';l.style.background='white';}">
+                                    <span style="font-size:0.9rem;font-weight:600;color:var(--text);">${func.name}</span>
+                                </label>`;
                             });
-                        } else if (Array.isArray(question.options)) {
-                            question.options.forEach(option => {
-                                fieldHTML += `<option value="${option.value}">${option.label}</option>`;
-                            });
+                            fieldHTML += '</div>';
+                        } else {
+                            fieldHTML += `<select id="${question.fieldName}" class="form-input" ${question.required ? 'required' : ''}>`;
+                            if (Array.isArray(question.options)) {
+                                question.options.forEach(option => {
+                                    fieldHTML += `<option value="${option.value}">${option.label}</option>`;
+                                });
+                            }
+                            fieldHTML += '</select>';
                         }
-                        
-                        fieldHTML += '</select>';
                         break;
                         
                     case 'rating':
@@ -2414,7 +2420,8 @@
             
             // Collect data from all dynamic form fields
             const evaluation = {
-                submittedDate: new Date().toLocaleDateString('nl-NL'),
+                submit
+            const getCheckedValues = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(b => b.value);tedDate: new Date().toLocaleDateString('nl-NL'),
                 eventId: currentEventId || null
             };
             
@@ -2431,7 +2438,13 @@
                         value = fieldElement ? fieldElement.value.trim() : '';
                         break;
                     case 'select':
-                        value = fieldElement ? fieldElement.value : '';
+                        if (question.options === 'functions') {
+                            // Checkboxes voor meerdere functies
+                            const checked = Array.from(document.querySelectorAll(`input[name="${question.fieldName}"]:checked`)).map(b => b.value);
+                            value = checked.length > 0 ? checked : null;
+                        } else {
+                            value = fieldElement ? fieldElement.value : '';
+                        }
                         break;
                     case 'rating':
                         const ratingElement = document.getElementById(question.fieldName + 'Rating');
@@ -2440,7 +2453,7 @@
                 }
                 
                 // Check required fields
-                if (question.required && (!value || (question.type === 'rating' && value < (question.min || 1)))) {
+                if (question.required && (!value || (Array.isArray(value) && value.length === 0) || (question.type === 'rating' && value < (question.min || 1)))) {
                     showError(`Veld '${question.label}' is verplicht`);
                     hasRequiredFieldError = true;
                     return;
@@ -3812,8 +3825,13 @@
                         } else if (question.type === 'select') {
                             // For function select, show function name
                             if (fieldName === 'evalFunction' || question.options === 'functions') {
-                                const func = functions.find(f => f.id === value);
-                                html += `<div style="color: #6b7280;">${func ? func.name : value}</div>`;
+                                if (Array.isArray(value)) {
+                                    const names = value.map(id => { const f = functions.find(fn => fn.id === id); return f ? f.name : id; }).join(', ');
+                                    html += `<div style="color: #6b7280;">${names}</div>`;
+                                } else {
+                                    const func = functions.find(f => f.id === value);
+                                    html += `<div style="color: #6b7280;">${func ? func.name : value}</div>`;
+                                }
                             } else if (Array.isArray(question.options)) {
                                 // For other dropdowns, show the label instead of value
                                 const option = question.options.find(opt => opt.value === value);
