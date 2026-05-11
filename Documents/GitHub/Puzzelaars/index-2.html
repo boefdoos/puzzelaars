@@ -1982,32 +1982,32 @@
 
                         html += `<div
                             ${isAvailable ? `data-slot-id="${slot.id}"` : ''}
-                            style="background:white;border-radius:var(--radius-md);border:2px solid ${isAvailable ? color.primary + '35' : '#f0f0f0'};padding:16px;cursor:${isAvailable ? 'pointer' : 'default'};transition:all 0.2s ease;position:relative;overflow:hidden;${isAvailable ? '' : 'opacity:0.55;'};flex:1 1 180px;min-width:160px;max-width:260px;"
-                            ${isAvailable ? `onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px ${color.primary}25';this.style.borderColor='${color.primary}'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='${color.primary}35'"` : ''}>
+                            style="background:${isAvailable ? color.bg : '#f5f5f5'};border-radius:var(--radius-md);border:2px solid ${isAvailable ? color.primary + '60' : '#e5e5e5'};padding:18px 16px;cursor:${isAvailable ? 'pointer' : 'default'};transition:all 0.2s ease;position:relative;overflow:hidden;${isAvailable ? '' : 'opacity:0.5;'};flex:1 1 180px;min-width:160px;max-width:280px;"
+                            ${isAvailable ? `onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 10px 28px ${color.primary}35';this.style.background='${color.bg}'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.background='${color.bg}'"` : ''}>
 
-                            <!-- Gekleurde topbalk -->
-                            <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${isAvailable ? color.gradient : '#e5e7eb'};"></div>
+                            <!-- Dikke gekleurde linkerbalk -->
+                            <div style="position:absolute;top:0;left:0;bottom:0;width:5px;background:${isAvailable ? color.gradient : '#d1d5db'};"></div>
 
-                            <div style="margin-top:4px;">
+                            <div style="padding-left:6px;">
                                 <!-- Functienaam -->
-                                <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;color:${isAvailable ? 'var(--text)' : 'var(--text-muted)'};margin-bottom:6px;line-height:1.3;">
+                                <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;color:${isAvailable ? color.primary : '#9ca3af'};margin-bottom:5px;line-height:1.3;">
                                     ${func ? func.name : '?'}
                                 </div>
 
                                 <!-- Beschrijving -->
-                                ${func && func.description ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;line-height:1.4;">${func.description}</div>` : '<div style="margin-bottom:10px;"></div>'}
+                                ${func && func.description ? `<div style="font-size:0.75rem;color:#6b7280;margin-bottom:10px;line-height:1.4;">${func.description}</div>` : '<div style="margin-bottom:10px;"></div>'}
 
                                 <!-- Bezettingsbalk -->
-                                <div style="background:#f0f0f0;border-radius:100px;height:5px;margin-bottom:8px;overflow:hidden;">
-                                    <div style="height:100%;width:${pct}%;background:${isAvailable ? color.gradient : '#d1d5db'};border-radius:100px;transition:width 0.3s;"></div>
+                                <div style="background:rgba(0,0,0,0.08);border-radius:100px;height:5px;margin-bottom:8px;overflow:hidden;">
+                                    <div style="height:100%;width:${pct}%;background:${isAvailable ? color.gradient : '#d1d5db'};border-radius:100px;"></div>
                                 </div>
 
                                 <!-- Beschikbaarheid -->
                                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                                    <span style="font-size:0.78rem;font-weight:700;color:${isAvailable ? color.primary : '#9ca3af'};">
+                                    <span style="font-size:0.78rem;font-weight:800;color:${isAvailable ? color.primary : '#9ca3af'};">
                                         ${isAvailable ? `${available} van ${slot.capacity} vrij` : 'Volzet'}
                                     </span>
-                                    ${isAvailable ? `<span style="font-size:0.85rem;color:${color.primary};">→</span>` : '<span style="font-size:0.85rem;">🔒</span>'}
+                                    ${isAvailable ? `<span style="font-size:1rem;color:${color.primary};font-weight:700;">→</span>` : '<span style="font-size:0.85rem;">🔒</span>'}
                                 </div>
                             </div>
                         </div>`;
