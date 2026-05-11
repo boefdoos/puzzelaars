@@ -3786,8 +3786,15 @@
                 
                 // Show individual evaluations with all their answers
                 evaluations.forEach((evaluation, index) => {
-                    const func = functions.find(f => f.id === evaluation.evalFunction);
-                    const funcName = func ? func.name : 'Onbekend';
+                    const evalFuncVal = evaluation.evalFunction;
+                    let funcName = 'Onbekend';
+                    if (Array.isArray(evalFuncVal)) {
+                        const names = evalFuncVal.map(id => { const f = functions.find(fn => fn.id === id); return f ? f.name : id; }).filter(Boolean);
+                        funcName = names.length > 0 ? names.join(', ') : 'Onbekend';
+                    } else if (evalFuncVal) {
+                        const func = functions.find(f => f.id === evalFuncVal);
+                        funcName = func ? func.name : 'Onbekend';
+                    }
                     
                     html += `
                         <div style="background: #f8fafc; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
@@ -3795,7 +3802,7 @@
                                 <div>
                                     <h4 style="color: var(--primary-color); margin-bottom: 5px;">Evaluatie #${index + 1}</h4>
                                     <div style="font-size: 0.9rem; color: #6b7280;">
-                                        ${evaluation.evalName ? `<strong>Naam:</strong> ${evaluation.evalName}<br>` : ''}
+                                        <strong>Naam:</strong> ${evaluation.evalName || evaluation.name || 'Anoniem'}<br>
                                         <strong>Functie:</strong> ${funcName}<br>
                                         <strong>Datum:</strong> ${evaluation.submittedDate}
                                     </div>
@@ -4028,7 +4035,7 @@
                 const func = functions.find(f => f.id === evaluation.functionId);
 
                 csvContent.push([
-                    evaluation.name || 'Anoniem',
+                    evaluation.evalName || evaluation.name || 'Anoniem',
                     func ? func.name : 'Onbekend',
                     `${evaluation.organizationRating}/5`,
                     evaluation.positive || '',
