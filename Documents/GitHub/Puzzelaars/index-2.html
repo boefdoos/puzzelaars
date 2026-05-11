@@ -2419,9 +2419,9 @@
             e.preventDefault();
             
             // Collect data from all dynamic form fields
+            const getCheckedValues = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(b => b.value);
             const evaluation = {
-                submit
-            const getCheckedValues = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(b => b.value);tedDate: new Date().toLocaleDateString('nl-NL'),
+                submittedDate: new Date().toLocaleDateString('nl-NL'),
                 eventId: currentEventId || null
             };
             
@@ -2437,7 +2437,7 @@
                     case 'textarea':
                         value = fieldElement ? fieldElement.value.trim() : '';
                         break;
-                    case 'select':
+                    case 'select': {
                         if (question.options === 'functions') {
                             // Checkboxes voor meerdere functies
                             const checked = Array.from(document.querySelectorAll(`input[name="${question.fieldName}"]:checked`)).map(b => b.value);
@@ -2446,10 +2446,12 @@
                             value = fieldElement ? fieldElement.value : '';
                         }
                         break;
-                    case 'rating':
+                    }
+                    case 'rating': {
                         const ratingElement = document.getElementById(question.fieldName + 'Rating');
                         value = ratingElement ? parseInt(ratingElement.dataset.rating || '0') : 0;
                         break;
+                    }
                 }
                 
                 // Check required fields
