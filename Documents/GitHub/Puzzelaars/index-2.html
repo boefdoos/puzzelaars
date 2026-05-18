@@ -894,7 +894,7 @@
             <!-- Admin Panel -->
             <div id="adminPanel" style="display: none;">
                 <!-- Admin Navigation -->
-                <div class="admin-nav">
+                <div class="admin-nav" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
                     <button class="btn btn-secondary" onclick="showAdminSection('events')">📋 Evenementen</button>
                     <button class="btn btn-primary" onclick="showAdminSection('overview')">📊 Overzicht</button>
                     <button class="btn btn-secondary" onclick="showAdminSection('bookings')">👥 Boekingen</button>
@@ -903,6 +903,9 @@
                     <button class="btn btn-secondary" onclick="showAdminSection('evaluations')">⭐ Evaluaties</button>
                     <button class="btn btn-secondary" onclick="showAdminSection('evaluation-form')">📝 Evaluatie Formulier</button>
                     <button class="btn btn-secondary" onclick="showAdminSection('settings')">⚙️ Instellingen</button>
+                    <div style="flex:1;"></div>
+                    <button class="btn btn-secondary" onclick="switchToUserView()" style="border-color:#0891b2;color:#0891b2;" title="Bekijk de app als vrijwilliger">👁️ Gebruikersweergave</button>
+                    <button class="btn btn-secondary" onclick="adminLogout()" style="border-color:#dc2626;color:#dc2626;">Uitloggen</button>
                 </div>
 
                 <!-- Admin Content -->
@@ -1517,9 +1520,18 @@
                 checkEvaluationAvailability();
             }
             
-            if (tabName === 'admin' && isAdminLoggedIn) {
-                document.getElementById('adminLogin').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
+            if (tabName === 'admin') {
+                if (isAdminLoggedIn) {
+                    document.getElementById('adminLogin').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    // Toon events als geen event geselecteerd, anders overzicht
+                    if (!currentEventId) {
+                        showAdminSectionDirect('events');
+                    }
+                } else {
+                    document.getElementById('adminLogin').style.display = 'block';
+                    document.getElementById('adminPanel').style.display = 'none';
+                }
             }
         }
 
@@ -2921,6 +2933,39 @@
         }
 
         // Programmatische versie zonder event.target
+        function switchToUserView() {
+            // Ga naar boeken-tab terwijl admin ingelogd blijft
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (currentEventId) {
+                document.getElementById('clientTab').classList.add('active');
+                const boekenBtn = document.querySelector('.tab-btn[onclick*="client"]');
+                if (boekenBtn) { boekenBtn.classList.add('active'); boekenBtn.style.display = ''; }
+            } else {
+                // Geen event geselecteerd: ga naar portal
+                document.getElementById('portalScreen').style.display = 'block';
+                document.getElementById('adminTab').classList.remove('active');
+            }
+        }
+
+        function adminLogout() {
+            isAdminLoggedIn = false;
+            document.getElementById('adminLogin').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminTabBtn').style.display = 'none';
+            document.getElementById('adminPassword') && (document.getElementById('adminPassword').value = '');
+            // Ga terug naar boeken tab of portal
+            if (currentEventId) {
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('clientTab').classList.add('active');
+                const boekenBtn = document.querySelector('.tab-btn[onclick*="client"]');
+                if (boekenBtn) { boekenBtn.classList.add('active'); boekenBtn.style.display = ''; }
+            } else {
+                showPortal();
+            }
+        }
+
         function showAdminSectionDirect(section) {
             document.querySelectorAll('.admin-nav .btn').forEach(btn => {
                 btn.classList.remove('btn-primary');
@@ -3013,8 +3058,14 @@
         // Show portal screen
         function showPortal() {
             document.getElementById('portalScreen').style.display = 'block';
-            document.getElementById('mainNavTabs').style.display = 'none';
-            document.getElementById('adminTabBtn').style.display = 'none';
+            // Als admin ingelogd: toon nav-tabs met admin knop (kan admin-panel bereiken)
+            if (isAdminLoggedIn) {
+                document.getElementById('mainNavTabs').style.display = 'flex';
+                document.getElementById('adminTabBtn').style.display = '';
+            } else {
+                document.getElementById('mainNavTabs').style.display = 'none';
+                document.getElementById('adminTabBtn').style.display = 'none';
+            }
             // Reset boeken tab zichtbaarheid voor volgend event
             const boekenReset = document.querySelector('.tab-btn[onclick*="client"]');
             if (boekenReset) boekenReset.style.display = '';
@@ -3686,6 +3737,22 @@
             });
         }
 
+        async function deleteEvaluation(evaluationId) {
+            if (!confirm('Deze evaluatie verwijderen?')) return;
+            const eval_ = evaluations.find(e => e.id === evaluationId || e.firebaseId === evaluationId);
+            if (!eval_) return;
+            try {
+                const docId = eval_.firebaseId || eval_.id;
+                await window.deleteDoc(window.doc(window.db, 'evaluations', docId));
+                evaluations = evaluations.filter(e => (e.firebaseId || e.id) !== docId);
+                showSuccess('🗑️ Evaluatie verwijderd');
+                showAdminSectionDirect('evaluations');
+            } catch(err) {
+                console.error(err);
+                showError('Fout bij verwijderen evaluatie');
+            }
+        }
+
         function showAdminEvaluations(container) {
             let html = `
                 <div class="card">
@@ -3774,20 +3841,9 @@
                 });
                 
                 // Add total evaluations card
-                html += `
-                    <div class="stat-card">
-                        <div class="stat-number">${evaluations.length}</div>
-                        <div class="stat-label">📝 Totaal Evaluaties</div>
-                    </div>
-                </div>
-                
-                <button class="btn btn-primary" onclick="exportEvaluationsReport()" style="margin-bottom: 20px;">
-                    📊 Export Evaluatie Rapport
-                </button>
-                
-                <!-- Detailed Responses Section -->
-                <h3 style="margin: 30px 0 20px 0; color: var(--primary-color);">📋 Gedetailleerde Antwoorden</h3>
-                `;
+                html += `<div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="exportEvaluationsCSV()">📊 Export naar CSV</button>
+                    </div>`;
                 
                 // Show individual evaluations with all their answers
                 evaluations.forEach((evaluation, index) => {
@@ -3861,6 +3917,13 @@
                     });
                     
                     html += `
+                            </div>
+                            <div style="display:flex;justify-content:flex-end;padding-top:10px;margin-top:4px;border-top:1px solid #f0f0f0;">
+                                <button onclick="deleteEvaluation('${evaluation.firebaseId || evaluation.id}')"
+                                    style="background:none;border:1.5px solid #fca5a5;color:#dc2626;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.78rem;padding:5px 14px;border-radius:100px;cursor:pointer;"
+                                    onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
+                                    🗑️ Verwijder
+                                </button>
                             </div>
                         </div>
                     `;
@@ -4085,6 +4148,53 @@
             link.click();
 
             showSuccess(`📊 CSV geëxporteerd met ${bookings.length} boekingen`);
+        }
+
+        function exportEvaluationsCSV() {
+            if (evaluations.length === 0) {
+                showError('Geen evaluaties om te exporteren');
+                return;
+            }
+
+            // Bouw headers dynamisch op basis van evaluatievragen
+            const dynamicFields = evaluationQuestions.map(q => ({ fieldName: q.fieldName, label: q.label, type: q.type, options: q.options }));
+            const headers = ['Naam', 'Ingediend op', ...dynamicFields.map(f => f.label)];
+
+            const rows = evaluations.map(ev => {
+                const name = ev.evalName || ev.name || 'Anoniem';
+                const date = ev.submittedDate || '';
+                const dynamicValues = dynamicFields.map(field => {
+                    const val = ev[field.fieldName];
+                    if (val === null || val === undefined || val === '') return '';
+                    if (Array.isArray(val)) {
+                        return val.map(id => {
+                            const f = functions.find(fn => fn.id === id);
+                            return f ? f.name : id;
+                        }).join(', ');
+                    }
+                    if (field.options === 'functions') {
+                        const f = functions.find(fn => fn.id === val);
+                        return f ? f.name : val;
+                    }
+                    if (field.options && Array.isArray(field.options)) {
+                        const opt = field.options.find(o => o.value === val);
+                        return opt ? opt.label : val;
+                    }
+                    return String(val);
+                });
+                return [name, date, ...dynamicValues];
+            });
+
+            const csvContent = [headers, ...rows]
+                .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+                .join('\n');
+
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${(currentEvent ? currentEvent.name : 'Evaluaties').replace(/\s+/g, '-')}-Evaluaties-${new Date().toLocaleDateString('nl-NL').replace(/\//g, '-')}.csv`;
+            link.click();
+            showSuccess(`📊 ${evaluations.length} evaluaties geëxporteerd`);
         }
 
         function exportEvaluationsReport() {
