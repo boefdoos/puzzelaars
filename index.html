@@ -3795,183 +3795,148 @@
         }
 
         function showAdminEvaluations(container) {
-            let html = `
-                <div class="card">
-                    <h2>⭐ Evaluaties Overzicht (${evaluations.length})</h2>
-            `;
-            
+            let html = `<div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+                    <h2 style="font-family:'Nunito',sans-serif;font-weight:800;margin:0;">⭐ Evaluaties (${evaluations.length})</h2>
+                    ${evaluations.length > 0 ? `<button class="btn btn-primary" onclick="exportEvaluationsCSV()">📊 Export CSV</button>` : ''}
+                </div>`;
+
             if (evaluations.length === 0) {
-                html += `
-                    <div style="text-align: center; padding: 40px; color: #6b7280;">
-                        <div style="font-size: 3rem; margin-bottom: 15px;">📝</div>
-                        <div style="font-size: 1.2rem; margin-bottom: 10px;">Nog geen evaluaties ontvangen</div>
-                        <div style="font-size: 0.9rem;">Evaluaties worden beschikbaar na het evenement</div>
-                    </div>
-                `;
+                html += `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+                    <div style="font-size:3rem;margin-bottom:12px;">📝</div>
+                    <p style="font-size:1rem;font-weight:600;">Nog geen evaluaties ontvangen</p>
+                    <p style="font-size:0.85rem;">Evaluaties worden beschikbaar na het evenement.</p>
+                </div>`;
             } else {
-                // Calculate all statistics from evaluation questions dynamically
+                // ── Statistieken ──────────────────────────────────────────
                 const stats = {};
-                
-                // Process each evaluation question for statistics
-                evaluationQuestions.forEach(question => {
-                    const fieldName = question.fieldName;
-                    
-                    if (question.type === 'rating') {
-                        // Calculate average rating
-                        const ratings = evaluations
-                            .map(e => parseInt(e[fieldName]))
-                            .filter(r => !isNaN(r) && r > 0);
-                        
+                evaluationQuestions.forEach(q => {
+                    if (q.type === 'rating') {
+                        const ratings = evaluations.map(e => parseInt(e[q.fieldName])).filter(r => !isNaN(r) && r > 0);
                         if (ratings.length > 0) {
-                            const avgRating = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
-                            const minRating = question.min || 1;
-                            const maxRating = question.max || 5;
-                            stats[fieldName] = {
-                                label: question.label,
-                                avg: avgRating.toFixed(1),
-                                max: maxRating,
+                            stats[q.fieldName] = {
+                                type: 'rating',
+                                label: q.label.replace('?','').replace(/\(.*\)/,'').trim(),
+                                avg: (ratings.reduce((s,r) => s+r, 0) / ratings.length).toFixed(1),
+                                max: q.max || 5,
                                 count: ratings.length
                             };
                         }
-                    } else if (question.type === 'select' && question.fieldName === 'evalVolunteerAgain') {
-                        // Calculate volunteer again percentage
-                        const responses = evaluations.map(e => e[fieldName]).filter(r => r);
-                        const yesCount = responses.filter(r => r === 'yes').length;
-                        const maybeCount = responses.filter(r => r === 'maybe').length;
-                        const noCount = responses.filter(r => r === 'no').length;
-                        
-                        stats[fieldName] = {
-                            label: question.label,
-                            yes: yesCount,
-                            yesPercentage: responses.length > 0 ? ((yesCount / responses.length) * 100).toFixed(1) : 0,
-                            maybe: maybeCount,
-                            maybePercentage: responses.length > 0 ? ((maybeCount / responses.length) * 100).toFixed(1) : 0,
-                            no: noCount,
-                            noPercentage: responses.length > 0 ? ((noCount / responses.length) * 100).toFixed(1) : 0,
-                            total: responses.length
-                        };
+                    } else if (q.type === 'select' && q.fieldName === 'evalVolunteerAgain') {
+                        const resp = evaluations.map(e => e[q.fieldName]).filter(Boolean);
+                        const yes = resp.filter(r => r === 'yes').length;
+                        const maybe = resp.filter(r => r === 'maybe').length;
+                        const no = resp.filter(r => r === 'no').length;
+                        if (resp.length > 0) {
+                            stats[q.fieldName] = { type: 'volunteer', yes, maybe, no, total: resp.length,
+                                yesPct: ((yes/resp.length)*100).toFixed(0) };
+                        }
                     }
                 });
-                
-                // Show statistics cards
-                html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">';
-                
-                // Add stat cards dynamically based on calculated stats
-                Object.keys(stats).forEach(fieldName => {
-                    const stat = stats[fieldName];
-                    
-                    if (stat.avg !== undefined) {
-                        // Rating stat card
-                        html += `
-                            <div class="stat-card">
-                                <div class="stat-number">${stat.avg}/${stat.max}</div>
-                                <div class="stat-label">⭐ ${stat.label.replace('?', '').replace(/\(.*\)/, '').trim()}</div>
-                                <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px;">${stat.count} beoordelingen</div>
-                            </div>
-                        `;
-                    } else if (stat.yesPercentage !== undefined) {
-                        // Volunteer again stat card
-                        html += `
-                            <div class="stat-card">
-                                <div class="stat-number">${stat.yesPercentage}%</div>
-                                <div class="stat-label">✅ Wil Opnieuw Vrijwilliger Zijn</div>
-                                <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px;">${stat.yes} van ${stat.total}</div>
-                            </div>
-                        `;
-                    }
-                });
-                
-                // Add total evaluations card
-                html += `<div style="display:flex;gap:10px;flex-wrap:wrap;">
-                        <button class="btn btn-primary" onclick="exportEvaluationsCSV()">📊 Export naar CSV</button>
-                    </div>`;
-                
-                // Show individual evaluations with all their answers
-                evaluations.forEach((evaluation, index) => {
-                    const evalFuncVal = evaluation.evalFunction;
-                    let funcName = 'Onbekend';
+
+                // Statistiek kaartjes — compact, niet full-height
+                if (Object.keys(stats).length > 0) {
+                    html += `<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px;">`;
+                    Object.values(stats).forEach(s => {
+                        if (s.type === 'rating') {
+                            const stars = Math.round(parseFloat(s.avg));
+                            const starStr = '⭐'.repeat(stars) + '☆'.repeat((s.max||5) - stars);
+                            html += `<div style="background:var(--primary);color:white;border-radius:var(--radius-md);padding:18px 22px;min-width:160px;flex:1 1 160px;max-width:220px;">
+                                <div style="font-family:'Nunito',sans-serif;font-size:2rem;font-weight:900;line-height:1;">${s.avg}<span style="font-size:1rem;opacity:0.8;">/${s.max}</span></div>
+                                <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;opacity:0.85;margin:4px 0 2px;">${s.label}</div>
+                                <div style="font-size:0.8rem;opacity:0.7;">${s.count} beoordelingen</div>
+                            </div>`;
+                        } else if (s.type === 'volunteer') {
+                            html += `<div style="background:white;border:1.5px solid var(--border);border-radius:var(--radius-md);padding:18px 22px;min-width:160px;flex:1 1 160px;max-width:260px;">
+                                <div style="font-family:'Nunito',sans-serif;font-size:2rem;font-weight:900;color:var(--primary);line-height:1;">${s.yesPct}%</div>
+                                <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin:4px 0 8px;">Wil opnieuw vrijwilliger zijn</div>
+                                <div style="display:flex;gap:6px;font-size:0.78rem;">
+                                    <span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:100px;font-weight:700;">✅ ${s.yes}</span>
+                                    <span style="background:#fef9c3;color:#713f12;padding:2px 8px;border-radius:100px;font-weight:700;">🤔 ${s.maybe}</span>
+                                    <span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:100px;font-weight:700;">❌ ${s.no}</span>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                    html += `</div>`;
+                }
+
+                // ── Individuele evaluaties ────────────────────────────────
+                html += `<div style="display:grid;gap:16px;">`;
+
+                evaluations.forEach((evaluation, idx) => {
+                    const evalFuncVal = evaluation.evalFunction || evaluation[evaluationQuestions.find(q => q.options === 'functions')?.fieldName];
+                    let funcName = '—';
                     if (Array.isArray(evalFuncVal)) {
                         const names = evalFuncVal.map(id => { const f = functions.find(fn => fn.id === id); return f ? f.name : id; }).filter(Boolean);
-                        funcName = names.length > 0 ? names.join(', ') : 'Onbekend';
+                        funcName = names.length > 0 ? names.join(', ') : '—';
                     } else if (evalFuncVal) {
-                        const func = functions.find(f => f.id === evalFuncVal);
-                        funcName = func ? func.name : 'Onbekend';
+                        const f = functions.find(fn => fn.id === evalFuncVal);
+                        funcName = f ? f.name : evalFuncVal;
                     }
-                    
-                    html += `
-                        <div style="background: #f8fafc; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-                                <div>
-                                    <h4 style="color: var(--primary-color); margin-bottom: 5px;">Evaluatie #${index + 1}</h4>
-                                    <div style="font-size: 0.9rem; color: #6b7280;">
-                                        <strong>Naam:</strong> ${evaluation.evalName || evaluation.name || 'Anoniem'}<br>
-                                        <strong>Functie:</strong> ${funcName}<br>
-                                        <strong>Datum:</strong> ${evaluation.submittedDate}
-                                    </div>
-                                </div>
+
+                    const name = evaluation.evalName || evaluation.name || 'Anoniem';
+                    const date = evaluation.submittedDate || '';
+
+                    html += `<div style="background:white;border:1.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden;">
+                        <!-- Evaluatie header -->
+                        <div style="background:#f8faf9;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1.5px solid var(--border);">
+                            <div>
+                                <span style="font-family:'Nunito',sans-serif;font-weight:800;color:var(--text);">Evaluatie #${idx + 1}</span>
+                                <span style="margin-left:10px;color:var(--text-muted);font-size:0.85rem;">— ${name}</span>
                             </div>
-                            
-                            <div style="display: grid; gap: 15px; margin-top: 20px;">
-                    `;
-                    
-                    // Show all question responses
-                    evaluationQuestions.forEach(question => {
-                        const fieldName = question.fieldName;
-                        const value = evaluation[fieldName];
-                        
-                        // Skip if no value
-                        if (!value && value !== 0) return;
-                        
-                        html += '<div style="border-left: 3px solid var(--primary-color); padding-left: 15px;">';
-                        html += `<div style="font-weight: 600; color: var(--text-color); margin-bottom: 5px;">${question.label}</div>`;
-                        
-                        // Format value based on question type
-                        if (question.type === 'rating') {
-                            const stars = '⭐'.repeat(parseInt(value));
-                            html += `<div style="color: #fbbf24; font-size: 1.2rem;">${stars} (${value}/${question.max || 5})</div>`;
-                        } else if (question.type === 'select' && question.fieldName === 'evalVolunteerAgain') {
-                            const labels = { 'yes': 'Ja, zeker!', 'maybe': 'Misschien', 'no': 'Nee' };
-                            const colors = { 'yes': '#10b981', 'maybe': '#f59e0b', 'no': '#ef4444' };
-                            html += `<div style="color: ${colors[value] || '#6b7280'}; font-weight: 600;">${labels[value] || value}</div>`;
-                        } else if (question.type === 'select') {
-                            // For function select, show function name
-                            if (fieldName === 'evalFunction' || question.options === 'functions') {
-                                if (Array.isArray(value)) {
-                                    const names = value.map(id => { const f = functions.find(fn => fn.id === id); return f ? f.name : id; }).join(', ');
-                                    html += `<div style="color: #6b7280;">${names}</div>`;
-                                } else {
-                                    const func = functions.find(f => f.id === value);
-                                    html += `<div style="color: #6b7280;">${func ? func.name : value}</div>`;
-                                }
-                            } else if (Array.isArray(question.options)) {
-                                // For other dropdowns, show the label instead of value
-                                const option = question.options.find(opt => opt.value === value);
-                                html += `<div style="color: #6b7280;">${option ? option.label : value}</div>`;
-                            } else {
-                                html += `<div style="color: #6b7280;">${value}</div>`;
-                            }
-                        } else {
-                            html += `<div style="color: #6b7280; white-space: pre-wrap;">${value}</div>`;
-                        }
-                        
-                        html += '</div>';
-                    });
-                    
-                    html += `
-                            </div>
-                            <div style="display:flex;justify-content:flex-end;padding-top:10px;margin-top:4px;border-top:1px solid #f0f0f0;">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                ${date ? `<span style="font-size:0.78rem;color:var(--text-muted);">📅 ${date}</span>` : ''}
                                 <button onclick="deleteEvaluation('${evaluation.firebaseId || evaluation.id}')"
-                                    style="background:none;border:1.5px solid #fca5a5;color:#dc2626;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.78rem;padding:5px 14px;border-radius:100px;cursor:pointer;"
+                                    style="background:none;border:1.5px solid #fca5a5;color:#dc2626;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.75rem;padding:4px 12px;border-radius:100px;cursor:pointer;"
                                     onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
                                     🗑️ Verwijder
                                 </button>
                             </div>
                         </div>
-                    `;
+                        <!-- Functie -->
+                        ${funcName !== '—' ? `<div style="padding:10px 18px;border-bottom:1px solid #f0f0f0;font-size:0.85rem;"><strong>Functie(s):</strong> <span style="color:var(--primary);font-weight:600;">${funcName}</span></div>` : ''}
+                        <!-- Antwoorden -->
+                        <div style="padding:14px 18px;display:grid;gap:12px;">`;
+
+                    evaluationQuestions.forEach(question => {
+                        const fieldName = question.fieldName;
+                        if (fieldName === 'evalFunction') return; // al getoond
+                        const value = evaluation[fieldName];
+                        if (!value && value !== 0) return;
+
+                        html += `<div style="border-left:3px solid var(--primary-light);padding-left:12px;">
+                            <div style="font-weight:700;font-size:0.82rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${question.label}</div>`;
+
+                        if (question.type === 'rating') {
+                            const n = parseInt(value);
+                            const max = question.max || 5;
+                            const starsFull = '⭐'.repeat(n) + '☆'.repeat(max - n);
+                            html += `<div style="font-size:1.1rem;">${starsFull} <span style="color:var(--primary);font-weight:700;font-size:0.9rem;">(${n}/${max})</span></div>`;
+                        } else if (question.type === 'select' && question.fieldName === 'evalVolunteerAgain') {
+                            const labels = { yes: '✅ Ja, zeker!', maybe: '🤔 Misschien', no: '❌ Nee' };
+                            const colors = { yes: '#166534', maybe: '#713f12', no: '#991b1b' };
+                            const bgs = { yes: '#dcfce7', maybe: '#fef9c3', no: '#fee2e2' };
+                            html += `<span style="background:${bgs[value]||'#f3f4f6'};color:${colors[value]||'#374151'};padding:3px 12px;border-radius:100px;font-weight:700;font-size:0.85rem;">${labels[value]||value}</span>`;
+                        } else if (question.type === 'select' && question.options === 'functions') {
+                            const names = Array.isArray(value)
+                                ? value.map(id => { const f = functions.find(fn => fn.id === id); return f ? f.name : id; }).join(', ')
+                                : (functions.find(f => f.id === value)?.name || value);
+                            html += `<div style="color:var(--primary);font-weight:600;font-size:0.9rem;">${names}</div>`;
+                        } else {
+                            html += `<div style="color:var(--text);font-size:0.9rem;white-space:pre-wrap;line-height:1.5;">${value}</div>`;
+                        }
+
+                        html += `</div>`;
+                    });
+
+                    html += `</div></div>`;
                 });
+
+                html += `</div>`; // einde evaluaties grid
             }
-            
-            html += '</div>';
+
+            html += `</div>`; // einde card
             container.innerHTML = html;
         }
 
