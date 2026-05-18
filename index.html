@@ -763,6 +763,17 @@
     </style>
 </head>
 <body>
+    <!-- Admin modus balk (zwevend, enkel zichtbaar in gebruikersweergave als admin) -->
+    <div id="adminModusBalk" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;background:linear-gradient(90deg,#1a7a45,#145e35);color:white;padding:12px 24px;display:none;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.2);gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.2rem;">🔧</span>
+            <span style="font-family:'Nunito',sans-serif;font-weight:700;font-size:0.9rem;">Je bekijkt de app als vrijwilliger — admin modus is actief</span>
+        </div>
+        <button onclick="backToAdmin()" style="background:white;color:#1a7a45;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.85rem;border:none;border-radius:100px;padding:8px 20px;cursor:pointer;white-space:nowrap;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            ← Terug naar admin
+        </button>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <div class="header" style="flex-direction: column; align-items: stretch; padding: 0;">
@@ -2934,17 +2945,45 @@
 
         // Programmatische versie zonder event.target
         function switchToUserView() {
-            // Ga naar boeken-tab terwijl admin ingelogd blijft
+            // Verberg admin tab in navigatie
+            document.getElementById('adminTabBtn').style.display = 'none';
+            // Toon zwevende admin-balk onderaan
+            const balk = document.getElementById('adminModusBalk');
+            balk.style.display = 'flex';
+            // Voeg padding toe aan body zodat balk inhoud niet bedekt
+            document.querySelector('.container').style.paddingBottom = '70px';
+
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
             if (currentEventId) {
-                document.getElementById('clientTab').classList.add('active');
                 const boekenBtn = document.querySelector('.tab-btn[onclick*="client"]');
-                if (boekenBtn) { boekenBtn.classList.add('active'); boekenBtn.style.display = ''; }
+                if (boekenBtn) { boekenBtn.style.display = ''; boekenBtn.classList.add('active'); }
+                document.getElementById('clientTab').classList.add('active');
             } else {
-                // Geen event geselecteerd: ga naar portal
                 document.getElementById('portalScreen').style.display = 'block';
-                document.getElementById('adminTab').classList.remove('active');
+                document.getElementById('mainNavTabs').style.display = 'none';
+            }
+        }
+
+        function backToAdmin() {
+            // Verberg balk, herstel admin tab
+            document.getElementById('adminModusBalk').style.display = 'none';
+            document.querySelector('.container').style.paddingBottom = '';
+            document.getElementById('adminTabBtn').style.display = '';
+
+            // Ga terug naar admin tab
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('adminTab').classList.add('active');
+            document.getElementById('adminTabBtn').classList.add('active');
+            document.getElementById('mainNavTabs').style.display = 'flex';
+            document.getElementById('portalScreen').style.display = 'none';
+
+            if (!currentEventId) {
+                showAdminSectionDirect('events');
+            } else {
+                showAdminSectionDirect('overview');
             }
         }
 
@@ -2953,6 +2992,8 @@
             document.getElementById('adminLogin').style.display = 'block';
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('adminTabBtn').style.display = 'none';
+            document.getElementById('adminModusBalk').style.display = 'none';
+            document.querySelector('.container').style.paddingBottom = '';
             document.getElementById('adminPassword') && (document.getElementById('adminPassword').value = '');
             // Ga terug naar boeken tab of portal
             if (currentEventId) {
